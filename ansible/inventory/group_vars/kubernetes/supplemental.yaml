@@ -1,0 +1,8 @@
+---
+timezone: "America/New_York"
+github_username: "jmlingeman"
+coredns_addr: "10.43.0.10"
+kubeapi_addr: "192.168.1.22"
+cluster_cidr: "10.42.0.0/16"
+service_cidr: "10.43.0.0/16"
+node_cidr: "192.168.1.0/24"
