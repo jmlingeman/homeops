@@ -20,3 +20,6 @@ Brewfile.lock.json
 .idea
 # wiki
 wiki
+*.swp
+secrets.yml
+secrets.yaml
