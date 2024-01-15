@@ -29,23 +29,23 @@ spec:
       persistence:
         enabled: true
         existingClaim: postgres
-  service:
-    main:
-        ports:
-            http:
-                port: 5432
-  ingress:
-    main:
-        enabled: true
-        className: internal
-        hosts:
-            - host: &host postgres.${SECRET_DOMAIN}
-              paths:
-                - path: /
-                  pathType: Prefix
-                  service:
-                      name: main
-                      port: http
-        tls:
-            - hosts:
-                - *host
+    service:
+      main:
+          ports:
+              http:
+                  port: 5432
+    ingress:
+      main:
+          enabled: true
+          className: internal
+          hosts:
+              - host: &host postgres.${SECRET_DOMAIN}
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                        name: main
+                        port: http
+          tls:
+              - hosts:
+                  - *host
