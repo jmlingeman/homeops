@@ -6,16 +6,16 @@ metadata:
   namespace: flux-system
 spec:
   targetNamespace: media
-  dependsOn:
-    - name: cluster-apps-pvc-media
-    - name: cluster-apps-rook-ceph-cluster
-    - name: cluster-apps-cloudnative-pg-cluster
-    - name: cluster-apps-external-secrets-stores
+  # dependsOn:
+  #   - name: cluster-apps-pvc-media
+  #   - name: cluster-apps-rook-ceph-cluster
+  #   - name: cluster-apps-cloudnative-pg-cluster
+  #   - name: cluster-apps-external-secrets-stores
   path: ./kubernetes/apps/media/sonarr/app
   prune: true
   sourceRef:
     kind: GitRepository
-    name: k8s-gitops
+    name: home-kubernetes
   wait: true
   interval: 30m
   retryInterval: 1m
