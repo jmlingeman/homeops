@@ -2,8 +2,8 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
-  name: &app sabnzbd
-  namespace: media
+  name: &app vaultwarden
+  namespace: security
 spec:
   interval: 15m
   chart:
