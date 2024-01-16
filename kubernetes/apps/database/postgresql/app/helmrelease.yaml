@@ -32,8 +32,7 @@ spec:
     service:
       main:
           ports:
-              http:
-                  port: 5432
+          - port: 5432
     ingress:
       main:
           enabled: true
