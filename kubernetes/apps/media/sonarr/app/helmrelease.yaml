@@ -30,6 +30,23 @@ spec:
     image:
       repository: lscr.io/linuxserver/sonarr
       tag: latest
+    containers:
+      main:
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /ready
+                port: &port 8989
+              initialDelaySeconds: 0
+              periodSeconds: 10
+              timeoutSeconds: 1
+              failureThreshold: 3
+          readiness: *probes
+          startup:
+            enabled: false
 
     env:
       TZ: ${TIMEZONE}
@@ -71,15 +88,6 @@ spec:
         size: 1Gi
         retain: true
 
-      torrents:
-        enabled: true
-        mountPath: /torrents
-        type: custom
-        volumeSpec:
-          nfs:
-            server: "192.168.1.30"
-            path: "/mnt/pool1/tv/torrents"
-
       downloads:
         enabled: true
         mountPath: /downloads
@@ -87,7 +95,7 @@ spec:
         volumeSpec:
           nfs:
             server: "192.168.1.30"
-            path: "/mnt/pool1/tv/downloads"
+            path: "/mnt/pool1/downloads"
 
       tv:
         enabled: true
@@ -96,7 +104,7 @@ spec:
         volumeSpec:
           nfs:
             server: "192.168.1.30"
-            path: "/mnt/pool1/tv/TV"
+            path: "/mnt/pool1/tv"
 
     resources:
       requests:
