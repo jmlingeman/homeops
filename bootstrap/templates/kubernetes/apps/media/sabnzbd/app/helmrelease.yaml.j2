@@ -38,7 +38,7 @@ spec:
               repository: lscr.io/linuxserver/sabnzbd
               tag: latest
             env:
-              PORT: &port 8080
+              PORT: 8080
             probes:
               liveness: &probes
                 enabled: true
@@ -54,6 +54,12 @@ spec:
               readiness: *probes
               startup:
                 enabled: false
+            resources:
+              requests:
+                cpu: 10m
+                memory: 100Mi
+              limits:
+                memory: 12Gi
 
     env:
       TZ: ${TIMEZONE}
@@ -64,7 +70,7 @@ spec:
       main:
         ports:
           http:
-            port: *port
+            port: 8080
     ingress:
       main:
         enabled: true
@@ -79,7 +85,7 @@ spec:
                 pathType: Prefix
                 service:
                   name: main
-                  port: http
+                  port: 80
         tls:
           - hosts:
               - *host

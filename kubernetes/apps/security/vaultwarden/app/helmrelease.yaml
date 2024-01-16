@@ -38,7 +38,7 @@ spec:
               repository: docker.io/vaultwarden/server
               tag: latest
             env:
-              PORT: &port http
+              PORT: &port 80
             probes:
               liveness: &probes
                 enabled: true
@@ -64,7 +64,7 @@ spec:
       main:
         ports:
           http:
-            port: *port
+            port: 80
     ingress:
       main:
         enabled: true
