@@ -57,7 +57,7 @@ spec:
       main:
         ports:
           http:
-            port: 8989
+            port: http
     ingress:
       main:
         enabled: true
@@ -71,7 +71,7 @@ spec:
               - path: /
                 service:
                   name: main
-                  port: 80
+                  port: http
         tls:
           - hosts:
               - *host
