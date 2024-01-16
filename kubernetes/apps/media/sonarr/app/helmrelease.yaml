@@ -1,19 +1,23 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   name: &app sonarr
+  namespace: media
 spec:
-  interval: 30m
+  interval: 15m
   chart:
     spec:
+      # renovate: registryUrl=https://bjw-s.github.io/helm-charts/
       chart: app-template
-      version: 2.4.0
+      version: 1.5.1
       sourceRef:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
+  maxHistory: 2
   install:
+    createNamespace: true
     remediation:
       retries: 3
   upgrade:
@@ -23,104 +27,100 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    controllers:
-      main:
-        annotations:
-          reloader.stakater.com/auto: "true"
-        initContainers:
-          init-db:
-            image:
-              repository: ghcr.io/onedr0p/postgres-init
-              tag: 16
-            envFrom: &envFrom
-              - secretRef:
-                  name: sonarr-secret
-        containers:
-          main:
-            image:
-              repository: ghcr.io/onedr0p/sonarr
-              tag: 4.0.0.748@sha256:f1b1826ccbea3868ff6b30690417fdc1a0f3329ebad0909d0d11ddd856f9f4dd
-            env:
-              COMPlus_EnableDiagnostics: 0
-              SONARR__AUTHENTICATION_METHOD: External
-              SONARR__AUTHENTICATION_REQUIRED: DisabledForLocalAddresses
-              SONARR__INSTANCE_NAME: Sonarr
-              SONARR__LOG_LEVEL: info
-              SONARR__PORT: &port 8989
-              SONARR__THEME: dark
-              TZ: ${TIMEZONE}
-            envFrom: *envFrom
-            probes:
-              liveness: &probes
-                enabled: true
-                custom: true
-                spec:
-                  httpGet:
-                    path: /ping
-                    port: *port
-                  initialDelaySeconds: 0
-                  periodSeconds: 10
-                  timeoutSeconds: 1
-                  failureThreshold: 3
-              readiness: *probes
-              startup:
-                enabled: false
-            resources:
-              requests:
-                cpu: 10m
-              limits:
-                memory: 1Gi
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
-              capabilities:
-                drop:
-                  - ALL
-        pod:
-          affinity:
-            podAntiAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                - labelSelector:
-                    matchExpressions:
-                      - key: app.kubernetes.io/name
-                        operator: In
-                        values:
-                          - radarr
-                  topologyKey: kubernetes.io/hostname
-          securityContext:
-            runAsUser: 568
-            runAsGroup: 568
-            runAsNonRoot: true
-            fsGroup: 568
-            fsGroupChangePolicy: OnRootMismatch
-            supplementalGroups:
-              - 65536
-    ingress:
-      main:
-        enabled: true
-        className: internal
-        annotations:
-          hajimari.io/icon: mdi:television-classic
-        hosts:
-          - host: &host "sonarr.${SECRET_DOMAIN}"
-            paths:
-              - path: /
-                service:
-                  name: main
-                  port: http
-        tls:
-          - hosts:
-              - *host
-    persistence:
-      config:
-        enabled: true
-        existingClaim: *app
-      media:
-        existingClaim: media-tv-claim
-      tmp:
-        type: emptyDir
+    image:
+      repository: lscr.io/linuxserver/sonarr
+      tag: 3.0.10
+
+    env:
+      TZ: ${TIMEZONE}
+      PUID: 1000
+      PGID: 1000
+
     service:
       main:
         ports:
           http:
-            port: *port
+            port: 8989
+
+    ingress:
+      main:
+        enabled: true
+        ingressClassName: "nginx"
+        annotations:
+          nginx.ingress.kubernetes.io/whitelist-source-range: |
+            10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+          hajimari.io/enable: "true"
+          hajimari.io/icon: "television-box"
+        hosts:
+          - host: &host "sonarr.${SECRET_DOMAIN}"
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - hosts:
+              - *host
+    podSecurityContext:
+      supplementalGroups:
+        - 1000
+
+    persistence:
+      config:
+        enabled: true
+        mountPath: /config
+        storageClass: longhorn
+        size: 1Gi
+        retain: true
+
+      torrents:
+        enabled: true
+        mountPath: /torrents
+        type: custom
+        volumeSpec:
+          nfs:
+            server: "${NFS_SERVER}"
+            path: "${NFS_TV}/torrents"
+
+      downloads:
+        enabled: true
+        mountPath: /downloads
+        type: custom
+        volumeSpec:
+          nfs:
+            server: "${NFS_SERVER}"
+            path: "${NFS_TV}/downloads"
+
+      tv:
+        enabled: true
+        mountPath: /tv
+        type: custom
+        volumeSpec:
+          nfs:
+            server: "${NFS_SERVER}"
+            path: "${NFS_TV}/TV"
+
+    resources:
+      requests:
+        cpu: 15m
+        memory: 335Mi
+      limits:
+        memory: 600Mi
+
+    sidecars:
+      exporter:
+        image: ghcr.io/onedr0p/exportarr:v1.6.0
+        args:
+          - *app
+        env:
+          URL: http://localhost
+          CONFIG: /config/config.xml
+          PORT: &metrics-port 9794
+          ENABLE_ADDITIONAL_METRICS: true
+          ENABLE_UNKNOWN_QUEUE_ITEMS: true
+          API_KEY: random-value-will-be-overriden-by-config-xml
+        ports:
+          - name: metrics
+            containerPort: *metrics-port
+        volumeMounts:
+          - name: config
+            mountPath: /config
+

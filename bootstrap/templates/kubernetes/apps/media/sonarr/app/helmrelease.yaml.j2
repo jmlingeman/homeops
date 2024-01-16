@@ -124,13 +124,3 @@ spec:
           - name: config
             mountPath: /config
 
-    serviceMonitor:
-      main:
-        enabled: true
-        serviceName: '{{ include "bjw-s.common.lib.chart.names.fullname" $ }}'
-        endpoints:
-          - port: metrics
-            scheme: http
-            path: /metrics
-            interval: 3m
-            scrapeTimeout: 1m
