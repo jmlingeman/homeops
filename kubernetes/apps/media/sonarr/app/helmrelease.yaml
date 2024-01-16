@@ -77,8 +77,8 @@ spec:
         type: custom
         volumeSpec:
           nfs:
-            server: "${NFS_SERVER}"
-            path: "${NFS_TV}/torrents"
+            server: "nas.local
+            path: "/mnt/pool1/tv/torrents"
 
       downloads:
         enabled: true
@@ -86,8 +86,8 @@ spec:
         type: custom
         volumeSpec:
           nfs:
-            server: "${NFS_SERVER}"
-            path: "${NFS_TV}/downloads"
+            server: "nas.local"
+            path: "/mnt/pool1/tv/downloads"
 
       tv:
         enabled: true
@@ -95,8 +95,8 @@ spec:
         type: custom
         volumeSpec:
           nfs:
-            server: "${NFS_SERVER}"
-            path: "${NFS_TV}/TV"
+            server: "nas.local"
+            path: "/mnt/pool1/tv/TV"
 
     resources:
       requests:
