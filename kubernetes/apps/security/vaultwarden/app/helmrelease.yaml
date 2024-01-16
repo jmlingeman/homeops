@@ -84,7 +84,6 @@ spec:
     podSecurityContext:
       supplementalGroups:
         - 1000
-
     persistence:
       vaultwarden:
         enabled: true
