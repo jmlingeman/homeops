@@ -116,7 +116,7 @@ spec:
         enabled: true
         existingClaim: *app
       media:
-        existingClaim: media_tv
+        existingClaim: pvc-media-tv
       tmp:
         type: emptyDir
     service:
