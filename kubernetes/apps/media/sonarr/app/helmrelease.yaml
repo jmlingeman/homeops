@@ -27,28 +27,33 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    image:
-      repository: lscr.io/linuxserver/sonarr
-      tag: latest
-    containers:
+    controllers:
       main:
-        env:
-          PORT: &port 8989
-        probes:
-          liveness: &probes
-            enabled: true
-            custom: true
-            spec:
-              httpGet:
-                path: /ready
-                port: *port
-              initialDelaySeconds: 0
-              periodSeconds: 10
-              timeoutSeconds: 1
-              failureThreshold: 3
-          readiness: *probes
-          startup:
-            enabled: false
+        annotations:
+          reloader.stakater.com/auto: "true"
+
+        containers:
+          main:
+            image:
+              repository: lscr.io/linuxserver/sonarr
+              tag: latest
+            env:
+              PORT: &port 8989
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /ready
+                    port: *port
+                  initialDelaySeconds: 0
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
+              readiness: *probes
+              startup:
+                enabled: false
 
     env:
       TZ: ${TIMEZONE}
@@ -133,4 +138,3 @@ spec:
         volumeMounts:
           - name: config
             mountPath: /config
-
