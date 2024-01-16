@@ -4,8 +4,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: media
 spec:
-  storageClassName: media_tv
-  volumeName: media_tv
+  storageClassName: media-tv
+  volumeName: media-tv
   accessModes: ["ReadWriteMany"]
   resources:
     requests:

@@ -2,10 +2,10 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: media
+  name: media-music
 spec:
-  storageClassName: media_music
-  volumeName: media_music
+  storageClassName: media-music
+  volumeName: media-music
   accessModes: ["ReadWriteMany"]
   resources:
     requests:
