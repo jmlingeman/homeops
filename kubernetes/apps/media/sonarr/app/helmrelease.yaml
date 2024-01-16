@@ -67,6 +67,7 @@ spec:
         annotations:
           hajimari.io/enable: "true"
           hajimari.io/icon: "television-box"
+
         hosts:
           - host: &host "sonarr.${SECRET_DOMAIN}"
             paths:
