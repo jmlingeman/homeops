@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: media-music
+  name: media-music-claim
 spec:
-  storageClassName: media-music
+  storageClassName: media-nfs-music
   volumeName: media-music-vol
   accessModes: ["ReadWriteMany"]
   resources:

@@ -4,7 +4,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: media-tv-claim
 spec:
-  storageClassName: media-tv
+  storageClassName: media-nfs-tv
   volumeName: media-tv-vol
   accessModes: ["ReadWriteMany"]
   resources:
