@@ -58,11 +58,10 @@ spec:
         ports:
           http:
             port: 8989
-
     ingress:
       main:
         enabled: true
-        ingressClassName: internal
+        className: internal
         annotations:
           hajimari.io/enable: "true"
           hajimari.io/icon: "television-box"
@@ -70,7 +69,6 @@ spec:
           - host: &host "sonarr.${SECRET_DOMAIN}"
             paths:
               - path: /
-                pathType: Prefix
                 service:
                   name: main
                   port: http
