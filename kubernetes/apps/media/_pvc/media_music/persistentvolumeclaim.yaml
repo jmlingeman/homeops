@@ -4,8 +4,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: media-music
 spec:
-  storageClassName: media-music-storage
-  volumeName: media-music
+  storageClassName: media-music
+  volumeName: media-music-vol
   accessModes: ["ReadWriteMany"]
   resources:
     requests:
