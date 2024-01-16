@@ -38,23 +38,20 @@ spec:
               repository: docker.io/vaultwarden/server
               tag: latest
             env:
-              PORT: &port 80
-
-            probes:
-              liveness: &probes
-                enabled: true
-                custom: true
-                spec:
-                  httpGet:
-                    path: /
-                    port: *port
-                  initialDelaySeconds: 0
-                  periodSeconds: 10
-                  timeoutSeconds: 1
-                  failureThreshold: 3
-              readiness: *probes
-              startup:
-                enabled: false
+              DATA_FOLDER: "/data"
+              ICON_CACHE_FOLDER: "/data/icon_cache"
+              ATTACHMENTS_FOLDER: "/data/attachments"
+              DOMAIN: "https://vaultwarden.${SECRET_CLUSTER_DOMAIN}"
+              TZ: "${TIMEZONE}"
+              SIGNUPS_ALLOWED: "false"
+              WEBSOCKET_ENABLED: "true"
+              WEBSOCKET_ADDRESS: 0.0.0.0
+              WEBSOCKET_PORT: 3012
+              # SMTP_HOST: smtp-relay.default.svc.cluster.local.
+              # SMTP_FROM: vaultwarden@${SECRET_DOMAIN}
+              # SMTP_FROM_NAME: vaultwarden
+              # SMTP_PORT: 2525
+              # SMTP_SECURITY: "off"
 
     env:
       TZ: ${TIMEZONE}
@@ -69,7 +66,10 @@ spec:
     ingress:
       main:
         enabled: true
-        className: internal
+        className: external
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
+          external-dns.alpha.kubernetes.io/enabled: "true"
         hosts:
           - host: &host "bitwarden.${SECRET_DOMAIN}"
             paths:
