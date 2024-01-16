@@ -89,11 +89,9 @@ spec:
       vaultwarden:
         enabled: true
         mountPath: /data
-        type: custom
-        volumeSpec:
-          nfs:
-            server: "192.168.1.30"
-            path: "/mnt/pool1/vaultwarden"
+        storageClass: longhorn
+        size: 3Gi
+        retain: true
 
     resources:
       requests:

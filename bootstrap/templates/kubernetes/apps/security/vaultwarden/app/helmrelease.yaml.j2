@@ -89,11 +89,9 @@ spec:
       vaultwarden:
         enabled: true
         mountPath: /data
-        type: custom
-        volumeSpec:
-          nfs:
-            server: "{{ media_nfs_host }}"
-            path: "{{ media_nfs_vaultwarden_path }}"
+        storageClass: longhorn
+        size: 3Gi
+        retain: true
 
     resources:
       requests:
