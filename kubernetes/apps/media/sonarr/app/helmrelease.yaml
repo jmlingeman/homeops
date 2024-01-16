@@ -10,8 +10,7 @@ spec:
     spec:
       # renovate: registryUrl=https://bjw-s.github.io/helm-charts/
       chart: app-template
-      version: 1.5.1
-      sourceRef:
+      version: 2.4.0
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
@@ -32,6 +31,8 @@ spec:
       tag: latest
     containers:
       main:
+        env:
+          PORT: &port 8989
         probes:
           liveness: &probes
             enabled: true
@@ -39,7 +40,7 @@ spec:
             spec:
               httpGet:
                 path: /ready
-                port: 8989
+                port: *port
               initialDelaySeconds: 0
               periodSeconds: 10
               timeoutSeconds: 1
@@ -57,7 +58,7 @@ spec:
       main:
         ports:
           http:
-            port: 8989
+            port: *port
     ingress:
       main:
         enabled: true
@@ -72,7 +73,7 @@ spec:
                 pathType: Prefix
                 service:
                   name: main
-                  port: 80
+                  port: http
         tls:
           - hosts:
               - *host
