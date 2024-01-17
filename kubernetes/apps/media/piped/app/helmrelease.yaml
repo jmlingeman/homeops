@@ -28,6 +28,7 @@ spec:
     keepHistory: false
   values:
     postgres:
+      enabled: true
       auth:
         password: "0ai9eg09eajghijeaog"
 
