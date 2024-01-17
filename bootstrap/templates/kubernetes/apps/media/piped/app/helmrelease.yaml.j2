@@ -33,8 +33,8 @@ spec:
         password:
             valueFrom:
                 secretKeyRef:
-                name: piped-secret
-                key: postgresPassword
+                    name: piped-secret
+                    key: postgresPassword
 
     ingress:
       backend:
