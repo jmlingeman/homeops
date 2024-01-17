@@ -32,7 +32,6 @@ spec:
       auth:
         password: "{{ media_postgres_password }}"
 
-
     ingress:
       backend:
         ingressClassName: "external"
@@ -80,3 +79,7 @@ spec:
       env:
         DISABLE_REGISTRATION: false
         BACKEND_HOSTNAME: *backendhost
+
+    env:
+      DISABLE_REGISTRATION: false
+      BACKEND_HOSTNAME: *backendhost
