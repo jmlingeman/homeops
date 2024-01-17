@@ -85,7 +85,9 @@ spec:
       supplementalGroups:
         - 1000
     persistence:
-      vaultwarden:
+      data:
+        accessModes:
+          - ReadWriteOnce
         enabled: true
         mountPath: /data
         storageClass: longhorn
