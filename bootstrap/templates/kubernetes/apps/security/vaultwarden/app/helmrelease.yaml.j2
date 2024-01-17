@@ -86,10 +86,9 @@ spec:
         - 1000
     persistence:
       data:
-        accessModes:
-          - ReadWriteOnce
         enabled: true
         mountPath: /data
+        accessModes: "ReadWriteOnce"
         storageClass: longhorn
         size: 3Gi
         retain: true
