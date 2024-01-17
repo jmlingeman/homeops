@@ -1,0 +1,81 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app piped
+  namespace: media
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: TeamPiped/piped
+      version: 4.1.1
+      sourceRef:
+        kind: HelmRepository
+        name: piped
+        namespace: flux-system
+  maxHistory: 2
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    postgres:
+      auth:
+        password: "0ai9eg09eajghijeaog"
+    ingress:
+      backend:
+        ingressClassName: "external"
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
+          external-dns.alpha.kubernetes.io/enabled: "true"
+        hosts:
+          - host: &backendhost "pipedapi.${SECRET_DOMAIN}"
+            paths:
+              - path: /
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts:
+              - *backendhost
+      main:
+        enabled: true
+        ingressClassName: "external"
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
+          external-dns.alpha.kubernetes.io/enabled: "true"
+        hosts:
+          - host: &frontendhost "piped.${SECRET_DOMAIN}"
+            paths:
+              - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts:
+              - *frontendhost
+      ytproxy:
+        enabled: true
+        ingressClassName: "external"
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
+          external-dns.alpha.kubernetes.io/enabled: "true"
+        hosts:
+          - host: &proxyhost "ytproxy.${SECRET_DOMAIN}"
+            paths:
+              - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts:
+              - *proxyhost
