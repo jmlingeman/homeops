@@ -75,8 +75,7 @@ spec:
           - hosts:
               - *proxyhost
 
-    containers:
-      main:
-        env:
-          DISABLE_REGISTRATION: false
-          BACKEND_HOSTNAME: *backendhost
+    frontend:
+      env:
+        DISABLE_REGISTRATION: false
+        BACKEND_HOSTNAME: *backendhost
