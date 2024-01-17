@@ -30,7 +30,11 @@ spec:
     postgres:
       enabled: true
       auth:
-        password: "{{ media_postgres_password }}"
+        password:
+            valueFrom:
+                secretKeyRef:
+                name: piped-secret
+                key: postgresPassword
 
     ingress:
       backend:
