@@ -43,7 +43,7 @@ spec:
             paths:
               - path: /
                 service:
-                  name: main
+                  name: backend
                   port: 80
         tls:
           - hosts:
@@ -77,7 +77,7 @@ spec:
               - path: /
                 pathType: Prefix
                 service:
-                  name: main
+                  name: ytproxy
                   port: 80
         tls:
           - hosts:
