@@ -29,6 +29,7 @@ spec:
     postgres:
       auth:
         password: "0ai9eg09eajghijeaog"
+
     ingress:
       backend:
         ingressClassName: "external"
