@@ -32,6 +32,7 @@ spec:
       auth:
         password: "{{ media_postgres_password }}"
 
+
     ingress:
       backend:
         ingressClassName: "external"
@@ -74,3 +75,8 @@ spec:
         tls:
           - hosts:
               - *proxyhost
+
+    main:
+      env:
+        DISABLE_REGISTRATION: false
+        BACKEND_HOSTNAME: *backendhost
