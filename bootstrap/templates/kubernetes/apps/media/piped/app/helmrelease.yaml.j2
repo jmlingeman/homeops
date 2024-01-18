@@ -34,7 +34,7 @@ spec:
             valueFrom:
                 secretKeyRef:
                     name: piped-secret
-                    key: postgresPassword
+                    key: POSTGRES_PASSWORD
 
     ingress:
       backend:

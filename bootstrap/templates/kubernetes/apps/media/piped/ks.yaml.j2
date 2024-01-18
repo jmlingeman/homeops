@@ -2,14 +2,11 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: &app cluster-apps-piped
+  name: cluster-apps-piped
   namespace: flux-system
 spec:
   path: ./kubernetes/apps/media/piped/app
   prune: true
-  commonMetadata:
-    labels:
-      app.kubernetes.io/name: *app
   sourceRef:
     kind: GitRepository
     name: home-kubernetes
