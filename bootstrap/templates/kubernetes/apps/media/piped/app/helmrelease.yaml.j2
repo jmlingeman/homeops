@@ -38,6 +38,7 @@ spec:
 
     ingress:
       backend:
+        enabled: true
         ingressClassName: "external"
         annotations:
           external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
