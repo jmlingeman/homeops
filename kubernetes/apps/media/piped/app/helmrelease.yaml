@@ -30,11 +30,11 @@ spec:
     postgres:
       enabled: true
       auth:
-        password: dummy
-            # valueFrom:
-            #     secretKeyRef:
-            #         name: piped-secret
-            #         key: postgresPassword
+        password:
+            valueFrom:
+                secretKeyRef:
+                    name: piped-secret
+                    key: postgresPassword
 
     ingress:
       backend:
