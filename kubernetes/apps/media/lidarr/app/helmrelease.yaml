@@ -35,7 +35,7 @@ spec:
         containers:
           main:
             image:
-              repository: randomninjaatk/lidarr-extended
+              repository: docker.io/randomninjaatk/lidarr-extended
               tag: latest
             env:
               PORT: &port 8686
