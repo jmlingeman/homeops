@@ -83,4 +83,9 @@ spec:
     frontend:
       env:
         DISABLE_REGISTRATION: false
-        BACKEND_HOSTNAME: *backendhost
+        BACKEND_HOSTNAME: "pipedapi.${SECRET_DOMAIN}"
+
+    main:
+      env:
+        DISABLE_REGISTRATION: false
+        BACKEND_HOSTNAME: "pipedapi.${SECRET_DOMAIN}"
