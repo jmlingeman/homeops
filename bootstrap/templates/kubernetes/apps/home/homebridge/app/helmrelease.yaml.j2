@@ -3,7 +3,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
   name: &app homebridge
-  namespace: media
+  namespace: home
 spec:
   interval: 15m
   chart:
@@ -27,15 +27,6 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    postgres:
-      enabled: true
-      auth:
-        password:
-            valueFrom:
-                secretKeyRef:
-                    name: piped-secret
-                    key: POSTGRES_PASSWORD
-
     ingress:
       main:
         enabled: true
