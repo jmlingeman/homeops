@@ -68,12 +68,10 @@ spec:
         enabled: true
         className: external
         annotations:
-          gatus.io/enabled: "true"
-          gatus.io/path: *path
           external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN}
         hosts:
           - host: &host "breezewiki.${SECRET_DOMAIN}"
-            paths: &paths
+            paths:
               - path: /
                 service:
                   name: main
