@@ -25,7 +25,7 @@ spec:
   values:
     controllers:
       main:
-        replicas: 2
+        replicas: 1
         strategy: RollingUpdate
         containers:
           main:
@@ -63,13 +63,6 @@ spec:
             runAsUser: 568
             runAsGroup: 568
             runAsNonRoot: true
-          topologySpreadConstraints:
-            - maxSkew: 1
-              topologyKey: kubernetes.io/hostname
-              whenUnsatisfiable: DoNotSchedule
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/name: *app
     ingress:
       main:
         enabled: true
