@@ -35,52 +35,13 @@ spec:
         containers:
           main:
             image:
-              repository: docker.io/randomninjaatk/lidarr-extended
+              repository: lscr.io/linuxserver/lidarr
               tag: latest
             env:
               PORT: &port 8686
               TZ: ${TIMEZONE}
               PUID: 1000
               PGID: 1000
-              enableAudioScript: true
-              scriptInterval: "15m"
-              configureLidarrWithOptimalSettings: true
-              searchSort: "date"
-              audioFormat: "native"
-              audioBitrate: "lossless"
-              requireQuality: true
-              enableReplaygainTags: true
-              audioLyricType: "both"
-              dlClientSource: "deezer"
-              arlToken:
-                valueFrom:
-                  secretKeyRef:
-                    name: lidarr-secret
-                    key: arlToken
-
-              addDeezerTopArtists: false
-              addDeezerTopAlbumArtists: false
-              addDeezerTopTrackArtists: false
-              topLimit: 10
-              addRelatedArtists: false
-              lidarrSearchForMissing: true
-              plexUrl:
-                valueFrom:
-                  secretKeyRef:
-                    name: lidarr-secret
-                    key: plexUrl
-
-              plexToken:
-                valueFrom:
-                  secretKeyRef:
-                    name: lidarr-secret
-                    key: plexToken
-
-              enableQueueCleaner: true
-              matchDistance: 5
-              enableBeetsTagging: true
-              beetsMatchPercentage: 90
-              retryNotFound: 90
             probes:
               liveness: &probes
                 enabled: true
