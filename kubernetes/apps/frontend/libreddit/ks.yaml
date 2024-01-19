@@ -6,7 +6,7 @@ metadata:
   namespace: flux-system
 spec:
   targetNamespace: default
-  path: ./kubernetes/apps/default/libreddit/app
+  path: ./kubernetes/apps/frontend/libreddit/app
   prune: true
   sourceRef:
     kind: GitRepository
