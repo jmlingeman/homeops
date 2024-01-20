@@ -4,7 +4,3 @@ kind: Kustomization
 resources:
   - ./helmrelease.yaml
   - ./configs/config.yaml
-configMapGenerator:
-  - name: breezewiki-configmap
-    files:
-      - ./configs/config.ini
