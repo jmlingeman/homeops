@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: breezewiki-configmap
+data:
+  config.ini: |
+    canonical_origin = ${SECRET_DOMAIN}
+    debug = false
+    port = 10416
