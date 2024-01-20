@@ -38,7 +38,7 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: &path /settings
+                    path: &path /
                     port: &port 10416
                   initialDelaySeconds: 0
                   periodSeconds: 10
