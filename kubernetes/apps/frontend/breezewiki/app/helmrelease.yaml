@@ -29,6 +29,8 @@ spec:
         strategy: RollingUpdate
         containers:
           main:
+            env:
+              bw_canonical_origin: "breezewiki.${SECRET_DOMAIN}"
             image:
               repository: quay.io/pussthecatorg/breezewiki
               tag: latest
@@ -93,4 +95,3 @@ spec:
         globalMounts:
           - path: /app/config.ini
             subPath: config.ini
-            readOnly: false
