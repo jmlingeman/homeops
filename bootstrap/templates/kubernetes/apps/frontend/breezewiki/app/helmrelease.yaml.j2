@@ -84,3 +84,13 @@ spec:
         ports:
           http:
             port: 10416
+
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: breezewiki-configmap
+        globalMounts:
+          - path: /app/config.ini
+            subPath: config.ini
+            readOnly: false
