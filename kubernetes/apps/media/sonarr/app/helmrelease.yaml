@@ -92,7 +92,7 @@ spec:
         enabled: true
         mountPath: /config
         storageClass: longhorn
-        size: 1Gi
+        size: 8Gi
         retain: true
 
       downloads:
