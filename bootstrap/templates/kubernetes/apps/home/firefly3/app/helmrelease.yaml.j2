@@ -37,8 +37,10 @@ spec:
               key: PGPASSWORD
         DBHOST: cluster-apps-firefly3-firefly-db
       storage:
+        name: storage-claim
         class: longhorn
         accessModes: ReadWriteMany
+        dataSize: 1Gi
 
     firefly-iii:
       ingress:
