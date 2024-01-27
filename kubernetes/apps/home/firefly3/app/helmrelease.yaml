@@ -35,6 +35,7 @@ spec:
             secretKeyRef:
               name: firefly-iii-secrets
               key: PGPASSWORD
+        DBHOST: cluster-apps-firefly3-firefly-db
 
     firefly-iii:
       ingress:
