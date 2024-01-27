@@ -11,6 +11,7 @@ resources:
   - ./descheduler.yaml
   - ./external-dns.yaml
   - ./grafana.yaml
+  - ./firefly3.yaml
   - ./ingress-nginx.yaml
   - ./jetstack.yaml
   - ./k8s-at-home.yaml
