@@ -36,13 +36,20 @@ spec:
               name: firefly-iii-secrets
               key: PGPASSWORD
         DBHOST: cluster-apps-firefly3-firefly-db
+        envFrom:
+          - secretRef:
+              name: firefly-iii-secrets
       storage:
-        name: storage-claim
+        name: storage
         class: longhorn
         accessModes: ReadWriteMany
         dataSize: 1Gi
 
     firefly-iii:
+      configs:
+        envFrom:
+          - secretRef:
+              name: firefly-iii-secrets
       ingress:
         main:
           enabled: true
