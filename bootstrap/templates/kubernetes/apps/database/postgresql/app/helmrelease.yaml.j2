@@ -23,7 +23,7 @@ spec:
       tag: 15.4.0-debian-11-r39
     auth:
       enablePostgresUser: false
-      username: dbadmin
+      username: {{ database_postgresql_username }}
       existingSecret: postgresql-secrets
     primary:
       persistence:
@@ -38,7 +38,7 @@ spec:
           enabled: true
           className: internal
           hosts:
-              - host: &host postgres.${SECRET_DOMAIN}
+              - host: &host {{ database_postgresql_hostname }}
                 paths:
                   - path: /
                     pathType: Prefix
