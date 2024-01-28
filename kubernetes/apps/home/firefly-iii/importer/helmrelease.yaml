@@ -48,7 +48,7 @@ spec:
                 valueFrom:
                   secretKeyRef:
                     name: firefly-iii-secrets
-                    key: APP_KEY
+                    key: API_KEY
             envFrom:
               - secretRef:
                   name: firefly-iii-secrets
