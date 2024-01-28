@@ -43,7 +43,7 @@ spec:
               PGID: 1000
               TRUSTED_PROXIES: "**"
               FIREFLY_III_URL: "http://firefly-iii.home.svc.cluster.local:8080"
-              VANITY_URL: &host "firefly-importer.${SECRET_DOMAIN}"
+              VANITY_URL: "firefly.${SECRET_DOMAIN}"
               FIREFLY_III_ACCESS_TOKEN:
                 valueFrom:
                   secretKeyRef:
@@ -72,7 +72,7 @@ spec:
           hajimari.io/enable: "true"
           hajimari.io/icon: "simple-icons:money"
         hosts:
-          - host: *host
+          - host: firefly-importer.${SECRET_DOMAIN}
             paths:
               - path: /
                 pathType: Prefix
