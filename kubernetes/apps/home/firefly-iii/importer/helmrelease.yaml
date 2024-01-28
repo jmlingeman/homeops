@@ -29,7 +29,7 @@ spec:
         env:
           TRUSTED_PROXIES: "**"
           FIREFLY_III_URL: "http://fireflyiii.home.svc.cluster.local:8080"
-          VANITY_URL: *host
+          VANITY_URL: &host "firefly-importer.${SECRET_DOMAIN}"
           FIREFLY_III_ACCESS_TOKEN:
             valueFrom:
               secretKeyRef:
@@ -48,7 +48,7 @@ spec:
           hajimari.io/icon: "foundation:page-export-csv"
           nginx.ingress.kubernetes.io/proxy-body-size: 4G
         hosts:
-          - host: &host "firefly-importer.${SECRET_DOMAIN}"
+          - host: *host
             paths:
               - path: /
         tls:
