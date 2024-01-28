@@ -3,7 +3,7 @@ apiVersion: db.movetokube.com/v1alpha1
 kind: Postgres
 metadata:
   name: atuin-db
-  namespace: services
+  namespace: home
 spec:
   database: atuin
 ---
@@ -11,7 +11,7 @@ apiVersion: db.movetokube.com/v1alpha1
 kind: PostgresUser
 metadata:
   name: atuin-user
-  namespace: services
+  namespace: home
 spec:
   role: atuin
   database: atuin-db
