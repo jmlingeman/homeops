@@ -18,7 +18,7 @@ spec:
   timeout: 3m
   dependsOn:
     - name: postgresql
-      namespace: database
+      namespace: flux-system
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
