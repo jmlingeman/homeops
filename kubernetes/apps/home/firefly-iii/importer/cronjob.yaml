@@ -53,7 +53,7 @@ spec:
                 valueFrom:
                   secretKeyRef:
                     name: firefly-iii-secrets
-                    key: APP_KEY
+                    key: API_KEY
 
     env:
       TZ: ${TIMEZONE}
