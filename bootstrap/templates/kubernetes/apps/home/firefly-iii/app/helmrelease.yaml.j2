@@ -28,40 +28,42 @@ spec:
           - secretRef:
               name: *app
 
-    image:
-      repository: docker.io/fireflyiii/core
-      tag: latest
+    containers:
+      main:
+        image:
+          repository: docker.io/fireflyiii/core
+          tag: latest
 
-    env:
-      APP_URL: &host "firefly.${SECRET_DOMAIN}"
-      TRUSTED_PROXIES: "**" #TODO: Change this
-      DB_CONNECTION: pgsql
-      DB_HOST:
-        valueFrom:
-          secretKeyRef:
-            name: firefly-iii-secrets
-            key: POSTGRES_HOST
-      DB_PORT: 5432
-      DB_DATABASE:
-        valueFrom:
-          secretKeyRef:
-            name: firefly-iii-secrets
-            key: POSTGRES_DB
-      DB_USERNAME:
-        valueFrom:
-          secretKeyRef:
-            name: firefly-iii-secrets
-            key: POSTGRES_USER
-      DB_PASSWORD:
-        valueFrom:
-          secretKeyRef:
-            name: firefly-iii-secrets
-            key: POSTGRES_PASS
-      APP_KEY:
-        valueFrom:
-          secretKeyRef:
-            name: firefly-iii-secrets
-            key: APP_KEY
+        env:
+          APP_URL: &host "firefly.${SECRET_DOMAIN}"
+          TRUSTED_PROXIES: "**" #TODO: Change this
+          DB_CONNECTION: pgsql
+          DB_HOST:
+            valueFrom:
+              secretKeyRef:
+                name: firefly-iii-secrets
+                key: POSTGRES_HOST
+          DB_PORT: 5432
+          DB_DATABASE:
+            valueFrom:
+              secretKeyRef:
+                name: firefly-iii-secrets
+                key: POSTGRES_DB
+          DB_USERNAME:
+            valueFrom:
+              secretKeyRef:
+                name: firefly-iii-secrets
+                key: POSTGRES_USER
+          DB_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: firefly-iii-secrets
+                key: POSTGRES_PASS
+          APP_KEY:
+            valueFrom:
+              secretKeyRef:
+                name: firefly-iii-secrets
+                key: APP_KEY
 
     service:
       main:

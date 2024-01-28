@@ -21,9 +21,20 @@ spec:
         reloader.stakater.com/auto: "true"
     global:
       nameOverride: *app
-    image:
-      repository: docker.io/fireflyiii/data-importer
-      tag: latest
+    containers:
+      main:
+        image:
+          repository: docker.io/fireflyiii/data-importer
+          tag: latest
+        env:
+          TRUSTED_PROXIES: "**"
+          FIREFLY_III_URL: "http://fireflyiii.home.svc.cluster.local:8080"
+          VANITY_URL: *host
+          FIREFLY_III_ACCESS_TOKEN:
+            valueFrom:
+              secretKeyRef:
+                name: firefly-iii-secrets
+                key: APP_KEY
     service:
       main:
         ports:
@@ -46,12 +57,4 @@ spec:
     envFrom:
       - secretRef:
           name: firefly-iii-secrets
-    env:
-      TRUSTED_PROXIES: "**"
-      FIREFLY_III_URL: "http://fireflyiii.home.svc.cluster.local:8080"
-      VANITY_URL: *host
-      FIREFLY_III_ACCESS_TOKEN:
-        valueFrom:
-          secretKeyRef:
-            name: firefly-iii-secrets
-            key: APP_KEY
+
