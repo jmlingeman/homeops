@@ -18,3 +18,4 @@ spec:
   timeout: 3m
   dependsOn:
     - name: postgresql
+      namespace: database
