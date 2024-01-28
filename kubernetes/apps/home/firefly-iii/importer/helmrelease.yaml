@@ -16,25 +16,27 @@ spec:
         name: bjw-s
         namespace: flux-system
   values:
-    controller:
+    controllers:
       annotations:
         reloader.stakater.com/auto: "true"
+      containers:
+        main:
+          image:
+            repository: docker.io/fireflyiii/data-importer
+            tag: latest
+          env:
+            TRUSTED_PROXIES: "**"
+            FIREFLY_III_URL: "http://fireflyiii.home.svc.cluster.local:8080"
+            VANITY_URL: &host "firefly-importer.${SECRET_DOMAIN}"
+            FIREFLY_III_ACCESS_TOKEN:
+              valueFrom:
+                secretKeyRef:
+                  name: firefly-iii-secrets
+                  key: APP_KEY
     global:
       nameOverride: *app
-    containers:
-      main:
-        image:
-          repository: docker.io/fireflyiii/data-importer
-          tag: latest
-        env:
-          TRUSTED_PROXIES: "**"
-          FIREFLY_III_URL: "http://fireflyiii.home.svc.cluster.local:8080"
-          VANITY_URL: &host "firefly-importer.${SECRET_DOMAIN}"
-          FIREFLY_III_ACCESS_TOKEN:
-            valueFrom:
-              secretKeyRef:
-                name: firefly-iii-secrets
-                key: APP_KEY
+
+
     service:
       main:
         ports:
