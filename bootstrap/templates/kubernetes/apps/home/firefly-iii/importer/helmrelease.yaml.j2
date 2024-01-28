@@ -72,7 +72,7 @@ spec:
           hajimari.io/enable: "true"
           hajimari.io/icon: "simple-icons:money"
         hosts:
-          - host: firefly-importer.${SECRET_DOMAIN}
+          - host: &host firefly-importer.${SECRET_DOMAIN}
             paths:
               - path: /
                 pathType: Prefix
