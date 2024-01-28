@@ -2,54 +2,88 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
-  name: fireflyiii-import-cba
+  name: &app firefly-iii-importer-cba
   namespace: home
 spec:
-  interval: 30m
+  interval: 15m
   chart:
     spec:
+      # renovate: registryUrl=https://bjw-s.github.io/helm-charts/
       chart: app-template
-      version: 1.5.1
-      interval: 30m
+      version: 2.4.0
       sourceRef:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
-
+  maxHistory: 2
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
   values:
     controllers:
-      type: cronjob
-      cronjob:
-        schedule: "0 17 * * *"
-        ttlSecondsAfterFinished: 86400
-      containers:
-        main:
-          image:
-            repository: fireflyiii/data-importer
-            tag: version-1.2.2
+      main:
+        type: cronjob
+        cronjob:
+          schedule: "0 17 * * *"
+          ttlSecondsAfterFinished: 86400
+        annotations:
+          reloader.stakater.com/auto: "true"
 
-          envFrom:
-            - secretRef:
-                name: fireflyiii
-          env:
-            TRUSTED_PROXIES: "**"
-            FIREFLY_III_URL: "http://fireflyiii.home.svc.cluster.local:8080"
-            VANITY_URL: "fireflyiii.${SECRET_DOMAIN}"
-            IMPORT_DIR_ALLOWLIST: "/import"
-            WEB_SERVER: false
-            FIREFLY_III_ACCESS_TOKEN:
-              valueFrom:
-                secretKeyRef:
-                  name: fireflyiii
-                  key: IMPORTER_PAT
+        containers:
+          main:
+            image:
+              repository: docker.io/fireflyiii/data-importer
+              tag: latest
+            env:
+              TZ: ${TIMEZONE}
+              PUID: 1000
+              PGID: 1000
+              TRUSTED_PROXIES: "**"
+              FIREFLY_III_URL: "http://firefly-iii.home.svc.cluster.local:8080"
+              #IMPORT_DIR_ALLOWLIST: "/import"
+              VANITY_URL: &host "firefly-importer.${SECRET_DOMAIN}"
+              FIREFLY_III_ACCESS_TOKEN:
+                valueFrom:
+                  secretKeyRef:
+                    name: firefly-iii-secrets
+                    key: APP_KEY
 
-
-    restartPolicy: OnFailure
-
-
-
-
+    env:
+      TZ: ${TIMEZONE}
+      PUID: 1000
+      PGID: 1000
 
     service:
       main:
-        enabled: false
+        ports:
+          http:
+            port: 8080
+
+    ingress:
+      main:
+        enabled: true
+        className: internal
+        annotations:
+          hajimari.io/enable: "true"
+          hajimari.io/icon: "simple-icons:money"
+        hosts:
+          - host: *host
+            paths:
+              - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts:
+              - *host
+    podSecurityContext:
+      supplementalGroups:
+        - 1000
