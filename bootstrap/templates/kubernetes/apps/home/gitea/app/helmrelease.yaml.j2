@@ -28,19 +28,22 @@ spec:
     keepHistory: false
   values:
     ingress:
-      main:
-        enabled: true
-        ingressClassName: "external"
-        annotations:
-          external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN}
-        hosts:
-          - host: &host "gitea.${SECRET_DOMAIN}"
-            paths:
-              - path: /
-                pathType: Prefix
-        tls:
-          - hosts:
-              - *host
+      enabled: true
+      ingressClassName: "external"
+      annotations:
+        external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN}
+      hosts:
+        - host: &host "gitea.${SECRET_DOMAIN}"
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - hosts:
+            - *host
     persistence:
       enabled: true
+
+    postgresql:
+      persistence:
+        enabled: true
 
