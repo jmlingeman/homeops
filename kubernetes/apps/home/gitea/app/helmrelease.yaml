@@ -41,6 +41,6 @@ spec:
         tls:
           - hosts:
               - *host
-  persistence:
-    enabled: true
+    persistence:
+      enabled: true
 
