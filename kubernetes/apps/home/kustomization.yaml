@@ -8,3 +8,4 @@ resources:
   - ./firefly-iii/ks.yaml
   - ./atuin/ks.yaml
   - ./gitea/ks.yaml
+  - ./actual/ks.yaml
