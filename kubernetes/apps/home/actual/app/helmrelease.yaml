@@ -36,7 +36,7 @@ spec:
           main:
             image:
               repository: docker.io/actualbudget/actual-server
-              tag: latest
+              tag: edge
             env:
               TZ: ${TIMEZONE}
               PUID: 1000
