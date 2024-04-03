@@ -115,22 +115,3 @@ spec:
           nfs:
             server: "{{ media_nfs_host }}"
             path: "{{ media_nfs_music_path }}"
-
-    sidecars:
-      exporter:
-        image: ghcr.io/onedr0p/exportarr:v1.6.0
-        args:
-          - *app
-        env:
-          URL: http://localhost
-          CONFIG: /config/config.xml
-          PORT: &metrics-port 9794
-          ENABLE_ADDITIONAL_METRICS: true
-          ENABLE_UNKNOWN_QUEUE_ITEMS: true
-          API_KEY: random-value-will-be-overriden-by-config-xml
-        ports:
-          - name: metrics
-            containerPort: *metrics-port
-        volumeMounts:
-          - name: config
-            mountPath: /config
