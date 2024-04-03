@@ -111,7 +111,7 @@ spec:
         volumeSpec:
           nfs:
             server: "192.168.1.30"
-            path: "/mnt/pool1/movies"
+            path: "/mnt/pool2/movies"
 
     resources:
       requests:

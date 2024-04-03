@@ -114,7 +114,7 @@ spec:
         volumeSpec:
           nfs:
             server: "192.168.1.30"
-            path: "/mnt/pool1/music"
+            path: "/mnt/pool2/music"
 
     sidecars:
       exporter:
