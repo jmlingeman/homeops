@@ -103,6 +103,8 @@ spec:
           nfs:
             server: "{{ media_nfs_host }}"
             path: "{{ media_nfs_downloads_path }}"
+            mountOptions:
+                nfsvers: 4.1
 
       music:
         enabled: true
