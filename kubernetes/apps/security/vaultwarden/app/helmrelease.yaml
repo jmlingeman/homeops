@@ -37,6 +37,7 @@ spec:
             image:
               repository: docker.io/vaultwarden/server
               tag: latest
+	          imagePullPolicy: Always
             env:
               DATA_FOLDER: "/data"
               ICON_CACHE_FOLDER: "/data/icon_cache"
