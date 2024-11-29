@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
-  name: &app breezewiki
+  name: &app librarian
 spec:
   interval: 30m
   chart:
@@ -30,7 +30,7 @@ spec:
         containers:
           main:
             image:
-              repository: quay.io/pussthecatorg/breezewiki
+              repository: quay.io/pussthecatorg/librarian
               tag: latest
 	      imagePullPolicy: Always
       	    imagePullPolicy: Always
@@ -72,7 +72,7 @@ spec:
         annotations:
           external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN}
         hosts:
-          - host: &host "breezewiki.${SECRET_DOMAIN}"
+          - host: &host "librarian.${SECRET_DOMAIN}"
             paths: &paths
               - path: /
                 service:
