@@ -28,13 +28,13 @@ spec:
         replicas: 1
         strategy: RollingUpdate
         containers:
-      	  imagePullPolicy: Always
+          imagePullPolicy: Always
           main:
             image:
               repository: quay.io/redlib/redlib:latest
               tag: latest
-	            imagePullPolicy: Always
-      	    imagePullPolicy: Always
+              imagePullPolicy: Always
+            imagePullPolicy: Always
             env:
               LIBREDDIT_DEFAULT_SHOW_NSFW: true
             probes:
