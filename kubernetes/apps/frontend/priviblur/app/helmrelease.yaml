@@ -59,4 +59,12 @@ spec:
       main:
         ports:
           http:
-            port: 3000
+            port: 8000
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: priviblur-config
+        globalMounts:
+          - subPath: config.toml
+            path: /priviblur/config.toml

@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: priviblur-config
+  labels:
+    app.kubernetes.io/name: homepage
+data:
+  config.ini: |
+# Controls deployment options
+[deployment]
+    host = "0.0.0.0" # Set to 127.0.0.1 if you use a reverse proxy, or access it locally
+    port = 8000
