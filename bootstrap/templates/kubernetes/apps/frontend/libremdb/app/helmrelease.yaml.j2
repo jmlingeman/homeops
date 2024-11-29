@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
-  name: &app librembd
+  name: &app libremdb
 spec:
   interval: 30m
   chart:
@@ -30,7 +30,7 @@ spec:
         containers:
           main:
             image:
-              repository: quay.io/pussthecatorg/librembd
+              repository: quay.io/pussthecatorg/libremdb
               tag: latest
 	            imagePullPolicy: Always
       	    imagePullPolicy: Always
@@ -46,7 +46,7 @@ spec:
         annotations:
           external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN}
         hosts:
-          - host: &host "librembd.${SECRET_DOMAIN}"
+          - host: &host "libremdb.${SECRET_DOMAIN}"
             paths: &paths
               - path: /
                 service:
