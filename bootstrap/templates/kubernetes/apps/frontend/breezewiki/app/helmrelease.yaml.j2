@@ -86,3 +86,11 @@ spec:
         ports:
           http:
             port: 3000
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: breezewiki-config
+        globalMounts:
+          - subPath: config.ini
+            path: /app/config.ini
