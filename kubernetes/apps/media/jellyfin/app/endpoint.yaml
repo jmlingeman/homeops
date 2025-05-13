@@ -1,4 +1,4 @@
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: extensions/v1beta1
 kind: Endpoints
 metadata:
   name: jellyfin-service # Must be equal to Service name for automatic mapping
