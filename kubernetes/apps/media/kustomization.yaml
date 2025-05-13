@@ -9,4 +9,4 @@ resources:
   - ./piped/ks.yaml
   - ./lidarr/ks.yaml
   - ./prowlarr/ks.yaml
-  - ./jellyfin/ingress.yaml
+  - ./jellyfin/ks.yaml
