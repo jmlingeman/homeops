@@ -1,0 +1,52 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app homarr
+  namespace: home
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: homarr
+      version: 10.6.0
+      sourceRef:
+        kind: HelmRepository
+        name: homarr
+        namespace: flux-system
+  maxHistory: 3
+
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    ingress:
+      enabled: true
+      className: internal
+      annotations:
+        external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
+      hosts:
+        - host: &host "homarr.${SECRET_DOMAIN}"
+          paths:
+            - path: /
+              pathType: Prefix
+              service:
+                name: main
+                port: http
+      tls:
+        - hosts:
+            - *host
+    persistence:
+      enabled: true
+
+    postgresql:
+      persistence:
+        enabled: true
+
