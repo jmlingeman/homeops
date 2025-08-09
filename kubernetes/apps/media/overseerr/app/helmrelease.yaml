@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
-  name: &app prowlarr
+  name: &app overseerr
   namespace: media
 spec:
   interval: 15m
@@ -35,20 +35,17 @@ spec:
         containers:
           main:
             image:
-              repository: lscr.io/linuxserver/prowlarr
+              repository: sctx/overseerr
               tag: latest
             env:
-              PORT: &port 9696
-              TZ: ${TIMEZONE}
-              PUID: 1000
-              PGID: 1000
+              PORT: &port 5055
             probes:
               liveness: &probes
                 enabled: true
                 custom: true
                 spec:
                   httpGet:
-                    path: /ready
+                    path: /
                     port: *port
                   initialDelaySeconds: 0
                   periodSeconds: 10
@@ -57,6 +54,11 @@ spec:
               readiness: *probes
               startup:
                 enabled: false
+
+    env:
+      TZ: ${TIMEZONE}
+      PUID: 1000
+      PGID: 1000
 
     service:
       main:
@@ -71,7 +73,7 @@ spec:
           hajimari.io/enable: "true"
           hajimari.io/icon: "television-box"
         hosts:
-          - host: &host "prowlarr.${SECRET_DOMAIN}"
+          - host: &host "overseerr.${SECRET_DOMAIN}"
             paths:
               - path: /
                 pathType: Prefix
@@ -88,13 +90,7 @@ spec:
     persistence:
       config:
         enabled: true
-        mountPath: /config
+        mountPath: /app/config
         storageClass: longhorn
-        size: 1Gi
+        size: 16Gi
         retain: true
-    resources:
-      requests:
-        cpu: 15m
-        memory: 335Mi
-      limits:
-        memory: 600Mi

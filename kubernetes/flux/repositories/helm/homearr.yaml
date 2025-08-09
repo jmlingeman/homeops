@@ -6,4 +6,4 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1h
-  url: https://homarr-labs.github.io/charts/
+  url: https://homarr-labs.github.io/charts
