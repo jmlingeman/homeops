@@ -7,7 +7,6 @@ resources:
   - ./breezewiki/ks.yaml
   - ./rimgo/ks.yaml
   - ./priviblur/ks.yaml
-  - ./proxitok/ks.yaml
   - ./quetre/ks.yaml
   - ./scribe/ks.yaml
   - ./libremdb/ks.yaml
