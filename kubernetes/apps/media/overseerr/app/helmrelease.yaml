@@ -90,7 +90,7 @@ spec:
     persistence:
       config:
         enabled: true
-        mountPath: /app/config
+        mountPath: /config
         storageClass: longhorn
         size: 16Gi
         retain: true
