@@ -113,6 +113,15 @@ spec:
             server: "192.168.1.30"
             path: "/mnt/pool1/tv"
 
+      tv2:
+        enabled: true
+        mountPath: /tv2
+        type: custom
+        volumeSpec:
+          nfs:
+            server: "192.168.1.30"
+            path: "/mnt/pool2/tv"
+
     resources:
       requests:
         cpu: 15m

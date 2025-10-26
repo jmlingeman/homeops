@@ -113,6 +113,15 @@ spec:
             server: "{{ media_nfs_host }}"
             path: "{{ media_nfs_tv_path }}"
 
+      tv2:
+        enabled: true
+        mountPath: /tv2
+        type: custom
+        volumeSpec:
+          nfs:
+            server: "{{ media_nfs_host }}"
+            path: "{{ media_nfs_tv2_path }}"
+
     resources:
       requests:
         cpu: 15m
