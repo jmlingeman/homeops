@@ -46,7 +46,7 @@ spec:
               DB_PASSWORD:
                 valueFrom:
                   secretKeyRef:
-                    name: firefly-iii-secrets
+                    name: youtarr-secrets
                     key: POSTGRES_PASS
               DB_NAME: youtarr
             probes:
