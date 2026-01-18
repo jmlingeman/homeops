@@ -33,24 +33,6 @@ spec:
           reloader.stakater.com/auto: "true"
 
         containers:
-          youtarr-db:
-            image:
-              repository: mariadb
-              tag: 10.3
-            env:
-              MYSQL_ROOT_PASSWORD:
-                valueFrom:
-                  secretKeyRef:
-                    name: firefly-iii-secrets
-                    key: POSTGRES_PASS
-              MYSQL_DATABASE: youtarr
-              MYSQL_TCP_PORT: 3321
-              # Set utf8mb4 as default for new installations
-              # Only set MYSQL_USER / MYSQL_PASSWORD if you configure a non-root DB_USER user in .env
-              # MYSQL_USER: ${DB_USER}
-              # MYSQL_PASSWORD: ${DB_PASSWORD}
-              MYSQL_CHARSET: utf8mb4
-              MYSQL_COLLATION: utf8mb4_unicode_ci
           main:
             image:
               repository: dialmaster/youtarr
@@ -58,9 +40,9 @@ spec:
             env:
               PORT: &port 3011
               TZ: ${TZ:-UTC}
-              DB_HOST: youtarr-db
-              DB_PORT: 3321
-              DB_USER: root
+              DB_HOST: postgresql.database.svc.cluster.local
+              DB_PORT: 5432
+              DB_USER: {{ database_postgresql_username }}
               DB_PASSWORD:
                 valueFrom:
                   secretKeyRef:
@@ -116,6 +98,12 @@ spec:
         - 1000
 
     persistence:
+      config:
+        enabled: true
+        mountPath: /config
+        storageClass: longhorn
+        size: 2Gi
+        retain: true
 
       downloads:
         enabled: true
