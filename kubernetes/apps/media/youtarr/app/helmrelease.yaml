@@ -33,6 +33,24 @@ spec:
           reloader.stakater.com/auto: "true"
 
         containers:
+          youtarr-db:
+            image:
+              repository: mariadb
+              tag: 10.3
+            env:
+              MYSQL_ROOT_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: firefly-iii-secrets
+                    key: POSTGRES_PASS
+              MYSQL_DATABASE: youtarr
+              MYSQL_TCP_PORT: 3321
+              # Set utf8mb4 as default for new installations
+              # Only set MYSQL_USER / MYSQL_PASSWORD if you configure a non-root DB_USER user in .env
+              # MYSQL_USER: ${DB_USER}
+              # MYSQL_PASSWORD: ${DB_PASSWORD}
+              MYSQL_CHARSET: utf8mb4
+              MYSQL_COLLATION: utf8mb4_unicode_ci
           main:
             image:
               repository: dialmaster/youtarr
@@ -40,15 +58,15 @@ spec:
             env:
               PORT: &port 3011
               TZ: ${TZ:-UTC}
-            DB_HOST: youtarr-db
-            DB_PORT: 3321
-            DB_USER: root
-            DB_PASSWORD:
-              valueFrom:
-                secretKeyRef:
-                  name: firefly-iii-secrets
-                  key: POSTGRES_PASS
-            DB_NAME: youtarr
+              DB_HOST: youtarr-db
+              DB_PORT: 3321
+              DB_USER: root
+              DB_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: firefly-iii-secrets
+                    key: POSTGRES_PASS
+              DB_NAME: youtarr
             probes:
               liveness: &probes
                 enabled: true
@@ -98,9 +116,21 @@ spec:
         - 1000
 
     persistence:
-      config:
+
+      downloads:
         enabled: true
-        mountPath: /app/config
-        storageClass: longhorn
-        size: 16Gi
-        retain: true
+        mountPath: /downloads
+        type: custom
+        volumeSpec:
+          nfs:
+            server: "192.168.1.30"
+            path: "/mnt/pool1/downloads"
+
+      temp:
+        enabled: true
+        mountPath: /tv2
+        type: custom
+        volumeSpec:
+          nfs:
+            server: "192.168.1.30"
+            path: "/mnt/pool2/temp"
