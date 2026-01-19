@@ -38,7 +38,7 @@ spec:
           enabled: true
           className: internal
           hosts:
-              - host: &host {{ database_postgresql_hostname }}
+              - host: &host "postgres.${SECRET_DOMAIN}"
                 paths:
                   - path: /
                     pathType: Prefix
