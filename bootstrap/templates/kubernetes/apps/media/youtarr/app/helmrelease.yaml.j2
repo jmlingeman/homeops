@@ -44,7 +44,7 @@ spec:
                     name: youtarr-secrets
                     key: POSTGRES_PASS
               MYSQL_DATABASE: youtarr
-              MYSQL_TCP_PORT: 3321
+              MYSQL_TCP_PORT: 3306
               MYSQL_CHARSET: utf8mb4
               MYSQL_COLLATION: utf8mb4_unicode_ci
           main:
@@ -55,7 +55,7 @@ spec:
               PORT: &port 3011
               TZ: ${TZ:-UTC}
               DB_HOST: youtarr-db
-              DB_PORT: 3321
+              DB_PORT: 3306
               DB_USER: root
               DB_PASSWORD:
                 valueFrom:
@@ -86,6 +86,8 @@ spec:
 
     service:
       youtarr-db:
+        ports:
+
       main:
         ports:
           http:
