@@ -85,6 +85,7 @@ spec:
       PGID: 1000
 
     service:
+      youtarr-db:
       main:
         ports:
           http:
