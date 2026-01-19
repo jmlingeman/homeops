@@ -30,11 +30,11 @@ spec:
         enabled: true
         existingClaim: postgres
     service:
-      main:
+      postgresql:
           ports:
           - port: 5432
     ingress:
-      main:
+      postgresql:
           enabled: true
           className: internal
           hosts:
@@ -43,7 +43,7 @@ spec:
                   - path: /
                     pathType: Prefix
                     service:
-                        name: main
+                        name: postgresql
                         port: http
           tls:
               - hosts:
