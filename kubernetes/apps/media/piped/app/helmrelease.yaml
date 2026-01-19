@@ -27,15 +27,6 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    postgres:
-      enabled: true
-      auth:
-        password:
-            valueFrom:
-                secretKeyRef:
-                    name: piped-secret
-                    key: POSTGRES_PASSWORD
-
     ingress:
       backend:
         enabled: true

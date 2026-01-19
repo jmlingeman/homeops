@@ -28,10 +28,7 @@ spec:
     keepHistory: false
   values:
     controllers:
-      main:
-        annotations:
-          reloader.stakater.com/auto: "true"
-
+      youtarr-db:
         containers:
           youtarr-db:
             image:
@@ -48,6 +45,9 @@ spec:
               MYSQL_TCP_PORT: 3306
               MYSQL_CHARSET: utf8mb4
               MYSQL_COLLATION: utf8mb4_unicode_ci
+      main:
+        annotations:
+          reloader.stakater.com/auto: "true"
           main:
             image:
               repository: dialmaster/youtarr
