@@ -37,6 +37,7 @@ spec:
             image:
               repository: mariadb
               tag: 10.3
+            name: youtarrdb
             env:
               MYSQL_ROOT_PASSWORD:
                 valueFrom:
@@ -51,10 +52,11 @@ spec:
             image:
               repository: dialmaster/youtarr
               tag: latest
+            name: youtarr
             env:
               PORT: &port 3011
               TZ: ${TZ:-UTC}
-              DB_HOST: youtarr-db
+              DB_HOST: youtarrdb
               DB_PORT: 3306
               DB_USER: root
               DB_PASSWORD:
@@ -85,9 +87,6 @@ spec:
       PGID: 1000
 
     service:
-      youtarr-db:
-        ports:
-
       main:
         ports:
           http:
