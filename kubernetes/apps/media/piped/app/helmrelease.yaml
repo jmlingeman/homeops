@@ -91,7 +91,7 @@ spec:
             valueFrom:
               secretKeyRef:
                   name: piped-secret
-                  key: password
+                  key: username
           password:
               valueFrom:
                 secretKeyRef:
