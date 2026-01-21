@@ -86,6 +86,7 @@ spec:
         database:
           connection_url: jdbc:postgresql://postgresql.database.svc.cluster.local:5432/piped
           driver_class: org.postgresql.Driver
+
           dialect: org.hibernate.dialect.PostgreSQLDialect
           secret:
             name: piped-secret
