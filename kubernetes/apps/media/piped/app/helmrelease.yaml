@@ -82,18 +82,20 @@ spec:
         BACKEND_HOSTNAME: "pipedapi.${SECRET_DOMAIN}"
 
     backend:
+      env:
+        DB_USERNAME:
+          valueFrom:
+            secretKeyRef:
+              name: piped-secret
+              key: username
+        DB_PASSWORD:
+          valueFrom:
+            secretKeyRef:
+              name: piped-secret
+              key: password
       config:
         database:
           connection_url: jdbc:postgresql://postgresql.database.svc.cluster.local:5432/piped
           driver_class: org.postgresql.Driver
           dialect: org.hibernate.dialect.PostgreSQLDialect
-          username:
-            valueFrom:
-              secretKeyRef:
-                name: piped-secret
-                key: username
-          password:
-            valueFrom:
-              secretKeyRef:
-                name: piped-secret
-                key: password
+
