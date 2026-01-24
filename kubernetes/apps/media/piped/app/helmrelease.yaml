@@ -21,11 +21,11 @@ spec:
     remediation:
       retries: 3
   upgrade:
-    cleanupOnFail: true
+    cleanupOnFail: false
     remediation:
       retries: 3
   uninstall:
-    keepHistory: false
+    keepHistory: true
   values:
     ingress:
       backend:
@@ -88,7 +88,6 @@ spec:
             secretKeyRef:
               name: piped-secret
               key: username
-
         DB_PASSWORD:
           valueFrom:
             secretKeyRef:
