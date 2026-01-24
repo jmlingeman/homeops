@@ -90,4 +90,6 @@ spec:
           dialect: org.hibernate.dialect.PostgreSQLDialect
           secret:
             name: piped-secret
+            username: .data.username
+            password: .data.password
 
