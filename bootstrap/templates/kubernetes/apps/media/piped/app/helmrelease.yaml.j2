@@ -82,6 +82,9 @@ spec:
         BACKEND_HOSTNAME: "pipedapi.${SECRET_DOMAIN}"
 
     backend:
+      image:
+        repository: nieveve/piped-backend
+        tag: latest@sha256:e8a1ba433f4972269966e3338733cc211b7e3859166b7e13aa2390aecd08bd51
       config:
         database:
           connection_url: jdbc:postgresql://postgresql.database.svc.cluster.local:5432/piped
