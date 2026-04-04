@@ -31,7 +31,7 @@ spec:
           imagePullPolicy: Always
           main:
             image:
-              repository: 192.168.1.211:5000/redlib # ghcr.io/cycneuramus/containers
+              repository: localreg/redlib # ghcr.io/cycneuramus/containers
               tag: test
               imagePullPolicy: Always
             imagePullPolicy: Always
