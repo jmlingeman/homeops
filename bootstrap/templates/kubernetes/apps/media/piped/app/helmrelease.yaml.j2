@@ -81,10 +81,14 @@ spec:
         DISABLE_REGISTRATION: false
         BACKEND_HOSTNAME: "pipedapi.${SECRET_DOMAIN}"
 
+    ytproxy:
+      image:
+        repository: logicalkarma/piped-proxy
+
     backend:
       image:
-        repository: nieveve/piped-backend
-        tag: latest@sha256:ff59de155ddc322b7efb1d855b75788048399e7bbc464c8d4763f6009a200a24
+        repository: smidget2k4/piped-backed
+        tag: latest@sha256:72892550a0f9a843ccea4f4b9c8c39a07712c07be2910ba49bede272a98fbbea
       config:
         database:
           connection_url: jdbc:postgresql://postgresql.database.svc.cluster.local:5432/piped
