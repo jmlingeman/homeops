@@ -41,3 +41,11 @@
 - name: Process addon volsync
   when: volsync.enabled | default(false)
   ansible.builtin.include_tasks: volsync.yaml
+
+- name: Process addon wireguard
+  when: wireguard.enabled | default(false)
+  ansible.builtin.include_tasks: wireguard.yaml
+
+- name: Process addon wg-easy
+  when: wg_easy.enabled | default(false)
+  ansible.builtin.include_tasks: wg_easy.yaml

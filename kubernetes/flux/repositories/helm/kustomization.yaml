@@ -2,7 +2,8 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ./backube.yaml
+  - ./gitea.yaml
+  - ./headlamp.yaml
   - ./bitnami.yaml
   - ./bjw-s.yaml
   - ./cilium.yaml
@@ -24,6 +25,7 @@ resources:
   - ./piped.yaml
   - ./piraeus.yaml
   - ./prometheus-community.yaml
+  - ./slybase.yaml
   - ./stakater.yaml
   - ./weave-gitops.yaml
   - ./movetokube.yaml

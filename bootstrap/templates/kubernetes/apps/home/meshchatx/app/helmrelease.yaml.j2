@@ -1,0 +1,79 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app meshchatx
+  namespace: home
+spec:
+  interval: 15m
+  chart:
+    spec:
+      # renovate: registryUrl=https://bjw-s.github.io/helm-charts/
+      chart: app-template
+      version: 2.4.0
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 2
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controllers:
+      main:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          main:
+            image:
+              # compose used quad4io/meshchatx:latest; ghcr.io/quad4-software/meshchatx
+              # is the same image. The project only publishes nightly tags
+              # (e.g. nightly-2026.08.29-fe29492) — pin one for reproducibility if desired.
+              repository: docker.io/quad4io/meshchatx
+              tag: latest
+              imagePullPolicy: Always
+            imagePullPolicy: Always
+            env:
+              PORT: &port 8000
+              TZ: ${TIMEZONE}
+
+    service:
+      main:
+        ports:
+          http:
+            port: *port
+    ingress:
+      main:
+        enabled: true
+        className: internal
+        annotations:
+          hajimari.io/enable: "true"
+        hosts:
+          - host: &host "meshchatx.${SECRET_DOMAIN}"
+            paths:
+              - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts:
+              - *host
+    persistence:
+      data:
+        enabled: true
+        # compose mounts the data volume at /root/.reticulum — the container
+        # runs as root, so no PUID/PGID and no supplementalGroups here.
+        mountPath: /root/.reticulum
+        storageClass: longhorn
+        size: 1Gi
+        retain: true
+        accessMode: "ReadWriteOnce"

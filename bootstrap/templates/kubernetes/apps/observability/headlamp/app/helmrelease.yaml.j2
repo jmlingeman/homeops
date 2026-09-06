@@ -1,0 +1,27 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app headlamp
+  namespace: observability
+spec:
+  interval: 30m
+  chart:
+    spec:
+      # renovate: registryUrl=https://kubernetes-sigs.github.io/headlamp/
+      chart: headlamp
+      version: 0.45.0
+      sourceRef:
+        kind: HelmRepository
+        name: headlamp
+        namespace: flux-system
+  # No values block: the chart defaults are correct for this cluster —
+  #   image: ghcr.io/headlamp-k8s/headlamp:v0.45.0 (tag defaults to v<appVersion>)
+  #   config.inCluster: true  → uses its own ServiceAccount kubeconfig
+  #   clusterRoleBinding → cluster-admin (same trust level as the
+  #   unauthenticated kubernetes-dashboard it complements/replaces)
+  #   service: ClusterIP headlamp:80
+  #
+  # Hardening (when wanted): enable config.oidc with an issuer, e.g.
+  # an oauth2-proxy or Keycloak, or front it with an auth proxy —
+  # out of scope until the kubernetes-dashboard is retired.

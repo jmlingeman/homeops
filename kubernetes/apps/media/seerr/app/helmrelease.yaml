@@ -1,0 +1,80 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: seerr
+  namespace: media
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: 2.4.0
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 2
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controllers:
+      main:
+        annotations:
+          reloader.stakater.com/auto: 'true'
+        containers:
+          main:
+            image:
+              repository: docker.io/seerr-team/seerr
+              tag: latest
+              imagePullPolicy: IfNotPresent
+            imagePullPolicy: IfNotPresent
+            env:
+              TZ: ${TIMEZONE}
+              SECRETEncryptionKey:
+                valueFrom:
+                  secretKeyRef:
+                    name: seerr-secret
+                    key: SECRETEncryptionKey
+              SEERR__PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: seerr-secret
+                    key: SEERR__PASSWORD
+    service:
+      main:
+        ports:
+          tcp:
+            port: 5055
+    ingress:
+      main:
+        enabled: true
+        className: internal
+        hosts:
+        - host: seerr.${SECRET_DOMAIN}
+          paths:
+          - path: /
+            pathType: Prefix
+            service:
+              name: main
+              port: tcp
+        tls:
+        - hosts:
+          - seerr.${SECRET_DOMAIN}
+        annotations:
+          hajimari.io/enable: 'true'
+    persistence:
+      data:
+        enabled: true
+        mountPath: /app/config
+        storageClass: longhorn
+        size: 10Gi
+        retain: true
+        accessMode: ReadWriteOnce

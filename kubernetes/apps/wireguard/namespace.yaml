@@ -1,0 +1,10 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: wireguard
+  labels:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+    # the wireguard chart needs NET_ADMIN and keeps the image's default
+    # capability set, so the namespace must allow privileged pods
+    pod-security.kubernetes.io/enforce: privileged

@@ -1,0 +1,48 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app wireguard
+  namespace: wireguard
+spec:
+  interval: 30m
+  chart:
+    spec:
+      # chart from oci://ghcr.io/slybase/charts (SlyBase/helm-charts)
+      chart: wireguard
+      version: 2.0.4
+      sourceRef:
+        kind: HelmRepository
+        name: slybase
+        namespace: flux-system
+  maxHistory: 2
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    wireguard:
+      timezone: "${TIMEZONE}"
+      server:
+        enabled: true
+        storage:
+          storageClass: longhorn
+          size: 1Gi
+        config:
+          # IP the VPN clients connect to: k3s node LAN address + the
+          # NodePort below. "auto" would auto-detect instead.
+          address: "192.168.1.20"
+          # comma-separated peer names; a peer_<name>.conf file is generated
+          # per name and can be printed from the pod (see chart README)
+          peers: "jesse"
+    # chart defaults: NodePort service, port 51820, nodePort 31822 —
+    # clients connect to 192.168.1.20:31822 (UDP)
+    service:
+      type: NodePort
+      port: 51820
+      nodePort: 31822
