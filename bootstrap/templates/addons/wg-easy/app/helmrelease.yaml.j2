@@ -34,6 +34,10 @@ spec:
         # address shown to VPN clients: k3s node LAN address
         # (wireguard UDP is reachable on <this>:30200)
         host: "192.168.1.20"
+        # default DNS for new clients: k8s-gateway split DNS (LB .23) —
+        # authoritative for jesseisageek.com (internal apps -> .25),
+        # forwards all other names upstream
+        dns: "192.168.1.23"
     storage:
       storageClass: longhorn
       size: 1Gi

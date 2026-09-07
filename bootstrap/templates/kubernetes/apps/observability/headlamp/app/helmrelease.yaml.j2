@@ -15,13 +15,18 @@ spec:
         kind: HelmRepository
         name: headlamp
         namespace: flux-system
-  # No values block: the chart defaults are correct for this cluster —
-  #   image: ghcr.io/headlamp-k8s/headlamp:v0.45.0 (tag defaults to v<appVersion>)
-  #   config.inCluster: true  → uses its own ServiceAccount kubeconfig
-  #   clusterRoleBinding → cluster-admin (same trust level as the
-  #   unauthenticated kubernetes-dashboard it complements/replaces)
-  #   service: ClusterIP headlamp:80
+  # Values (only non-defaults):
+  #   config.inCluster: true (default) would log UI users in as a
+  #   headlamp-admin SA the app bootstraps in kube-system, which has no
+  #   RBAC binding -> "forbidden" on every resource. unsafeUseServiceAccountToken
+  #   makes headlamp use the pod's own SA (observability/headlamp), which the
+  #   chart's clusterRoleBinding already binds to cluster-admin.
+  values:
+    config:
+      unsafeUseServiceAccountToken: true
   #
-  # Hardening (when wanted): enable config.oidc with an issuer, e.g.
-  # an oauth2-proxy or Keycloak, or front it with an auth proxy —
-  # out of scope until the kubernetes-dashboard is retired.
+  # Chart defaults (kept): image ghcr.io/headlamp-k8s/headlamp:v0.45.0,
+  # clusterRoleBinding -> cluster-admin, Service ClusterIP headlamp:80.
+  # Hardening (when wanted): enable config.oidc with an issuer, or front
+  # it with an auth proxy — out of scope until the kubernetes-dashboard
+  # is retired.

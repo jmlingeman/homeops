@@ -37,6 +37,28 @@ wireguard:
   create VPN profiles there; the admin UI is HTTP-only on the LAN — don't
   expose it publicly.
 
+## Accessing internal sites from the VPN
+
+Internal-only apps (`sonarr.jesseisageek.com` etc. → nginx-internal VIP
+`192.168.1.25`) are not in the public DNS, and wg-easy's generated clients
+default to `AllowedIPs = <client ip>/32` (VPN-only mode) — so a phone on
+cellular can reach neither the names nor the LAN address through the tunnel.
+To give a client internal access (UI → Clients → edit the client):
+
+- **Allowed IPs**: `10.8.0.0/24, 192.168.1.0/24`
+  (or `0.0.0.0/0` for a full tunnel through home)
+- **DNS**: `192.168.1.23` — k8s-gateway's split DNS: answers
+  `jesseisageek.com` with the internal VIP (`.25`), forwards all other
+  names upstream
+
+Then re-import the (changed) client config/QR on the device. The data path
+itself needs nothing: the server masquerades `10.8.0.0/24` → LAN via its
+`PostUp` rules, and k8s-gateway is reachable from the tunnel.
+
+`config.init.dns: 192.168.1.23` in the addon HelmRelease makes **new**
+clients default to the split DNS; allowed IPs still have to be set per
+client (the app's default is the client's own /32).
+
 ## Gotchas
 
 - **Don't enable both** — you'd run two VPN servers; pick one. (Enabling both
