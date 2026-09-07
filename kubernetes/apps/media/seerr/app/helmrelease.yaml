@@ -32,7 +32,7 @@ spec:
         containers:
           main:
             image:
-              repository: docker.io/seerr-team/seerr
+              repository: docker.io/seerr/seerr
               tag: latest
               imagePullPolicy: IfNotPresent
             imagePullPolicy: IfNotPresent
