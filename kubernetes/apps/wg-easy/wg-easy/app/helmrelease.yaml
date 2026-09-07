@@ -1,0 +1,61 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app wg-easy
+  namespace: wg-easy
+spec:
+  interval: 30m
+  chart:
+    spec:
+      # chart from oci://ghcr.io/slybase/charts (SlyBase/helm-charts)
+      chart: wg-easy
+      version: 1.2.0
+      sourceRef:
+        kind: HelmRepository
+        name: slybase
+        namespace: flux-system
+  maxHistory: 2
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    config:
+      init:
+        enabled: true
+        # admin UI credentials come from the sops-encrypted wg-easy-secret
+        existingSecret: wg-easy-secret
+        # address shown to VPN clients: k3s node LAN address
+        # (wireguard UDP is reachable on <this>:30200)
+        host: "192.168.1.20"
+    storage:
+      storageClass: longhorn
+      size: 1Gi
+    # UI: http://192.168.1.20:30201 (or any node:30201)
+    # WireGuard UDP: 192.168.1.20:30200
+    service:
+      ui:
+        type: NodePort
+        port: 51821
+        nodePort: 30201
+      # the chart puts `service.wireguard.port` into the generated client
+      # config (INIT_PORT), so it must equal the NodePort — the port
+      # actually reachable by VPN clients — not the internal 51820
+      wireguard:
+        type: NodePort
+        port: 30200
+        nodePort: 30200
+    metrics:
+      enabled: true
+      grafanaDashboard:
+        enabled: true
+    serviceMonitor:
+      create: true
+      existingSecret: wg-metrics-secret
+      existingSecretKey: token

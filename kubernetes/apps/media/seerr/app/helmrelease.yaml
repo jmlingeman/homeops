@@ -51,7 +51,7 @@ spec:
     service:
       main:
         ports:
-          tcp:
+          http:
             port: 5055
     ingress:
       main:
@@ -64,7 +64,7 @@ spec:
             pathType: Prefix
             service:
               name: main
-              port: tcp
+              port: http
         tls:
         - hosts:
           - seerr.${SECRET_DOMAIN}

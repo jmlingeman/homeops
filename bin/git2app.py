@@ -294,6 +294,9 @@ def gen_kustomization(has_secrets):
 
 
 def gen_helmrelease(app, ns, repo, tag, port, proto, exposure, env_plain, secrets, persistence):
+    svc_port = {"port": port}
+    if proto != "tcp":
+        svc_port["protocol"] = proto.upper()
     values = {
         "controllers": {
             "main": {
@@ -307,7 +310,7 @@ def gen_helmrelease(app, ns, repo, tag, port, proto, exposure, env_plain, secret
                 },
             }
         },
-        "service": {"main": {"ports": {proto: {"port": port}}}},
+        "service": {"main": {"ports": {"http": svc_port}}},
     }
     env = values["controllers"]["main"]["containers"]["main"]["env"]
     env["TZ"] = "${TIMEZONE}"
@@ -323,7 +326,7 @@ def gen_helmrelease(app, ns, repo, tag, port, proto, exposure, env_plain, secret
             "hosts": [{
                 "host": app + ".${SECRET_DOMAIN}",
                 "paths": [{"path": "/", "pathType": "Prefix",
-                           "service": {"name": "main", "port": proto}}],
+                          "service": {"name": "main", "port": "http"}}],
             }],
             "tls": [{"hosts": [app + ".${SECRET_DOMAIN}"]}],
         }
