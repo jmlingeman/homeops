@@ -14,13 +14,6 @@ data:
     cluster:
       name: home-cluster
       id: 1
-    containerRuntime:
-      integration: containerd
-      {% if bootstrap_distribution == "k3s" %}
-      socketPath: /var/run/k3s/containerd/containerd.sock
-      {% else %}
-      socketPath: /var/run/k0s/containerd.sock
-      {% endif %}
     endpointRoutes:
       enabled: true
     hubble:
