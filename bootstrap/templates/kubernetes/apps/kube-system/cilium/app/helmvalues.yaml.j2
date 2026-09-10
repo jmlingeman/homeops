@@ -72,6 +72,11 @@ data:
     ipv6:
       enabled: true
     {% endif %}
+    k8sClientRateLimit:
+      # https://github.com/cilium/cilium/issues/26586 - prevent L2 lease renewal
+      # starvation of the agent's k8s client after API outages (reboot scenario)
+      qps: 200
+      burst: 400
     k8sServiceHost: "${KUBEAPI_ADDR}"
     k8sServicePort: 6443
     kubeProxyReplacement: true
