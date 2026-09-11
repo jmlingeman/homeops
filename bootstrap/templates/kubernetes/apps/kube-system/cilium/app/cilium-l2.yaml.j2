@@ -18,5 +18,32 @@ kind: CiliumLoadBalancerIPPool
 metadata:
   name: pool
 spec:
-  cidrs:
+  # cilium 1.16 renamed spec.cidrs -> spec.blocks (CRD update prunes the old field)
+  blocks:
     - cidr: "${NODE_CIDR}"
+---
+# Pin the LAN VIPs so LB-IPAM always allocates these (survives pool updates /
+# operator reallocation; see cilium issue #40358)
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-gateway
+  namespace: network
+  annotations:
+    lbipam.cilium.io/ip: 192.168.1.23
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-external-controller
+  namespace: network
+  annotations:
+    lbipam.cilium.io/ip: 192.168.1.24
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-internal-controller
+  namespace: network
+  annotations:
+    lbipam.cilium.io/ip: 192.168.1.25
