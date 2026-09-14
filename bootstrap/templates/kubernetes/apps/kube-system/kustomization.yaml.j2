@@ -7,5 +7,6 @@ resources:
   - ./cilium/ks.yaml
   {% if bootstrap_distribution == "k3s" %}
   - ./coredns/ks.yaml
+  - ./kine-wal/ks.yaml
   {% endif %}
   - ./metrics-server/ks.yaml

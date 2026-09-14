@@ -5,4 +5,5 @@ resources:
   - ./namespace.yaml
   - ./cilium/ks.yaml
   - ./coredns/ks.yaml
+  - ./kine-wal/ks.yaml
   - ./metrics-server/ks.yaml

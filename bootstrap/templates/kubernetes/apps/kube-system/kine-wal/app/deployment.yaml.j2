@@ -1,0 +1,52 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+---
+# k3s runs kine (sqlite) in-process as the API datastore. Its autocheckpoint is
+# PASSIVE-only: it recycles WAL frames but never truncates the WAL file, so after
+# any write burst the state.db-wal file stays at its high-water mark forever
+# (observed: 13GB). Every subsequent reboot must replay that giant WAL, which
+# produces the multi-hour "Slow SQL" (2-3s per write) episode and keeps the API
+# effectively degraded for the first hours after a reboot.
+#
+# This pod periodically runs PRAGMA wal_checkpoint(TRUNCATE) against the kine DB,
+# which safely truncates the WAL file down to its live size (milliseconds; fails
+# with busy and retries next cycle if a reader/writer is active at that instant).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kine-wal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kine-wal
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kine-wal
+    spec:
+      # the kine DB (server/db) only exists on the k3s primary
+      nodeSelector:
+        node-role.kubernetes.io/master: "true"
+      containers:
+        - name: kine-wal
+          image: alpine:3.20
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - |
+              apk add --no-cache --quiet sqlite
+              while :; do
+                sqlite3 /host/db/state.db "PRAGMA wal_checkpoint(TRUNCATE)" || echo "checkpoint busy; retrying next cycle"
+                sleep 900
+              done
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: kine-db
+              mountPath: /host/db
+      volumes:
+        - name: kine-db
+          hostPath:
+            path: /var/lib/rancher/k3s/server/db
+            type: Directory
