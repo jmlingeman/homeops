@@ -1,36 +1,162 @@
 ---
-# Patch (strategic-merge on apply) for the HelmRelease-owned StatefulSet.
+# Full-object patch (client-side apply) for the HelmRelease-owned StatefulSet.
+# The STS has no kubectl last-applied baseline (Helm keeps its own state), so
+# the flux client-side merge needs a complete copy of the current spec to
+# stay valid (selector/labels match; immutable spec fields not dropped); the
+# only delta vs Helm's object is the postStart hook below.
 #
-# wg-easy's WireGuard config gives every client peer
+# Why the hook: wg-easy's WireGuard config gives every client peer
 # `AllowedIPs = <ip>, 10.8.0.0/24, 192.168.1.0/24` so phones can reach the
 # home LAN through the tunnel. When the kernel loads wg0 it installs
 # `192.168.1.0/24 dev wg0` into the POD's main routing table, so every reply
 # the pod sends to a LAN address (including NodePort SYN-ACKs) is routed into
 # the WireGuard tunnel toward the phones instead of to the actual client —
 # all LAN->pod connections (NodePort 30201 UI, 30200 UDP) time out, while
-# pod->pod and host->pod traffic to other pods is unaffected.
+# other pods are unaffected.
 #
 # The postStart hook continuously removes that one route; replies then follow
-# the default route via eth0 (pod network -> node -> LAN), which is the
-# correct path. The 10.8.0.0/24 (VPN client) route is left intact, so
-# client->LAN forwarding through the server keeps working.
+# the default route via eth0 (pod network -> node -> LAN). The 10.8.0.0/24
+# (VPN client) route is left intact, so client->LAN forwarding through the
+# server keeps working.
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: wg-easy
   namespace: wg-easy
 spec:
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: wg-easy
+      app.kubernetes.io/name: wg-easy
+  serviceName: ''
   template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: wg-easy
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: wg-easy
+        app.kubernetes.io/version: 15.3.0
+        helm.sh/chart: wg-easy-1.2.0
     spec:
       containers:
-        - name: wg-easy
-          lifecycle:
-            postStart:
-              exec:
-                command:
-                  - /bin/sh
-                  - -c
-                  - >-
-                    nohup sh -c 'while :; do
-                    ip route del 192.168.1.0/24 dev wg0 2>/dev/null;
-                    sleep 5; done' >/dev/null 2>&1 &
+      - env:
+        - name: HOST
+          value: 0.0.0.0
+        - name: PORT
+          value: '51821'
+        - name: INSECURE
+          value: 'true'
+        - name: DISABLE_IPV6
+          value: 'true'
+        - name: ENABLE_PROMETHEUS_METRICS
+          value: 'true'
+        - name: INIT_ENABLED
+          value: 'true'
+        - name: INIT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: wg-easy-secret
+        - name: INIT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: wg-easy-secret
+        - name: INIT_PORT
+          value: '30200'
+        - name: INIT_HOST
+          value: 192.168.1.20
+        - name: INIT_DNS
+          value: 192.168.1.23
+        - name: INIT_IPV4_CIDR
+          value: 10.8.0.0/24
+        - name: INIT_IPV6_CIDR
+          value: 2001:0DB8::/32
+        image: ghcr.io/wg-easy/wg-easy:15.4.0@sha256:0e7bc9d34e86ddcaa92bc700d4d7dc9b33291dbc07ac8d13382f7c2095f949ec
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - ip link show dev wg0 | grep -s up
+          failureThreshold: 3
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: wg-easy
+        ports:
+        - containerPort: 30200
+          name: udp-wireguard
+          protocol: UDP
+        - containerPort: 51821
+          name: http-ui
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - ip link show dev wg0 | grep -s up
+          failureThreshold: 3
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources: {}
+        securityContext:
+          capabilities:
+            add:
+            - NET_ADMIN
+          privileged: true
+          seccompProfile:
+            type: RuntimeDefault
+        startupProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - ip link show dev wg0 | grep -s up
+          failureThreshold: 10
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/wireguard
+          name: wg-easy
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - nohup sh -c 'while :; do ip route del 192.168.1.0/24 dev wg0 2>/dev/null; sleep 5; done' >/dev/null 2>&1 &
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccount: wg-easy
+      serviceAccountName: wg-easy
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: wg-easy-secret
+        secret:
+          defaultMode: 420
+          secretName: wg-easy-secret
+      - name: wg-easy
+        persistentVolumeClaim:
+          claimName: wg-easy
+  updateStrategy:
+    type: RollingUpdate
