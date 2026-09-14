@@ -1,0 +1,36 @@
+---
+# Patch (strategic-merge on apply) for the HelmRelease-owned StatefulSet.
+#
+# wg-easy's WireGuard config gives every client peer
+# `AllowedIPs = <ip>, 10.8.0.0/24, 192.168.1.0/24` so phones can reach the
+# home LAN through the tunnel. When the kernel loads wg0 it installs
+# `192.168.1.0/24 dev wg0` into the POD's main routing table, so every reply
+# the pod sends to a LAN address (including NodePort SYN-ACKs) is routed into
+# the WireGuard tunnel toward the phones instead of to the actual client —
+# all LAN->pod connections (NodePort 30201 UI, 30200 UDP) time out, while
+# pod->pod and host->pod traffic to other pods is unaffected.
+#
+# The postStart hook continuously removes that one route; replies then follow
+# the default route via eth0 (pod network -> node -> LAN), which is the
+# correct path. The 10.8.0.0/24 (VPN client) route is left intact, so
+# client->LAN forwarding through the server keeps working.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: wg-easy
+  namespace: wg-easy
+spec:
+  template:
+    spec:
+      containers:
+        - name: wg-easy
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - >-
+                    nohup sh -c 'while :; do
+                    ip route del 192.168.1.0/24 dev wg0 2>/dev/null;
+                    sleep 5; done' >/dev/null 2>&1 &

@@ -5,3 +5,4 @@ resources:
   - ./secret.sops.yaml
   - ./metrics-secret.sops.yaml
   - ./helmrelease.yaml
+  - ./statefulset.yaml
