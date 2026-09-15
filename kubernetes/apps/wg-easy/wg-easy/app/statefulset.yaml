@@ -14,10 +14,19 @@
 # all LAN->pod connections (NodePort 30201 UI, 30200 UDP) time out, while
 # other pods are unaffected.
 #
-# The postStart hook continuously removes that one route; replies then follow
-# the default route via eth0 (pod network -> node -> LAN). The 10.8.0.0/24
-# (VPN client) route is left intact, so client->LAN forwarding through the
-# server keeps working.
+# The postStart hook (a) continuously removes that one route, and
+# (b) keeps a MASQUARDE rule for 10.8.0.0/24 -> eth0 in place. (a) lets
+# replies follow the default route via eth0 (pod network -> node -> LAN).
+# (b) is required because the app configures the interface via the WireGuard
+# API, which skips the wg0.conf PostUp iptables hooks entirely: without the
+# masquerade, VPN client -> LAN packets leave the pod with the client's
+# 10.8.0.x source, and LAN machines' replies (sent to their default gateway,
+# which has no route for 10.8.0.0/24) are dropped. With it, replies address
+# the pod's k8s IP and come back via the home router's static routes
+# (10.42.0.0/24 -> 192.168.1.20, 10.42.1.0/24 -> 192.168.1.21) into this
+# netns, where conntrack un-masquerades them to 10.8.0.x -> wg0 -> client.
+# The 10.8.0.0/24 route stays; client->LAN forwarding through the server
+# keeps working.
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -140,7 +149,7 @@ spec:
               command:
               - /bin/sh
               - -c
-              - nohup sh -c 'while :; do ip route del 192.168.1.0/24 dev wg0 2>/dev/null; sleep 5; done' >/dev/null 2>&1 &
+              - nohup sh -c 'while :; do ip route del 192.168.1.0/24 dev wg0 2>/dev/null; iptables -t nat -C POSTROUTING -s 10.8.0.0/24 -o eth0 -j MASQUARADE 2>/dev/null || iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth0 -j MASQUARADE 2>/dev/null; sleep 5; done' >/dev/null 2>&1 &
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
