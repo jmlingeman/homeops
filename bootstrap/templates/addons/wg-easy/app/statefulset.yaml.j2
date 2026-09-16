@@ -14,19 +14,24 @@
 # all LAN->pod connections (NodePort 30201 UI, 30200 UDP) time out, while
 # other pods are unaffected.
 #
-# The postStart hook (a) continuously removes that one route, and
-# (b) keeps a MASQUARDE rule for 10.8.0.0/24 -> eth0 in place. (a) lets
-# replies follow the default route via eth0 (pod network -> node -> LAN).
-# (b) is required because the app configures the interface via the WireGuard
-# API, which skips the wg0.conf PostUp iptables hooks entirely: without the
-# masquerade, VPN client -> LAN packets leave the pod with the client's
-# 10.8.0.x source, and LAN machines' replies (sent to their default gateway,
-# which has no route for 10.8.0.0/24) are dropped. With it, replies address
-# the pod's k8s IP and come back via the home router's static routes
-# (10.42.0.0/24 -> 192.168.1.20, 10.42.1.0/24 -> 192.168.1.21) into this
-# netns, where conntrack un-masquerades them to 10.8.0.x -> wg0 -> client.
-# The 10.8.0.0/24 route stays; client->LAN forwarding through the server
-# keeps working.
+# The postStart hook maintains two things inside the pod netns:
+# (a) it continuously removes the 192.168.1.0/24 route (see above), so
+#     pod->LAN replies follow the default route via eth0 (pod network ->
+#     node -> LAN) instead of being sent into the WireGuard tunnel.
+# (b) it keeps an nftables MASQUARDE rule for 10.8.0.0/24 -> eth0 in place.
+#     The app (v15, Node-based) installs its own MASQUARDE rule in the
+#     legacy iptables table at startup (the older image relied on the
+#     wg0.conf PostUp hooks, which the API-based config skips entirely),
+#     but if that rule ever disappears (client reload, image change) the
+#     hook restores NAT via nft. Without any masquerade, VPN client ->
+#     LAN packets would leave with the client's 10.8.0.x source and LAN
+#     replies (sent to the home router, which has no 10.8.0.0/24 route)
+#     would be dropped. With it, replies address the pod's k8s IP and
+#     return via the home router's static routes
+#     (10.42.0.0/24 -> 192.168.1.20, 10.42.1.0/24 -> 192.168.1.21)
+#     into this netns, where conntrack un-masquerades them to 10.8.0.x.
+#     The 10.8.0.0/24 route itself stays; client->LAN forwarding through
+#     the server keeps working.
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -149,7 +154,7 @@ spec:
               command:
               - /bin/sh
               - -c
-              - nohup sh -c 'while :; do ip route del 192.168.1.0/24 dev wg0 2>/dev/null; iptables -t nat -C POSTROUTING -s 10.8.0.0/24 -o eth0 -j MASQUARADE 2>/dev/null || iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth0 -j MASQUARADE 2>/dev/null; sleep 5; done' >/dev/null 2>&1 &
+              - nohup sh -c 'while :; do ip route del 192.168.1.0/24 dev wg0 2>/dev/null; nft add table ip nat 2>/dev/null; nft list chain ip nat masq_post 2>/dev/null | grep -q masquerade || { nft delete chain ip nat masq_post 2>/dev/null; nft add chain ip nat masq_post "{ type nat hook postrouting priority 100; policy accept; }" 2>/dev/null; nft add rule ip nat masq_post ip saddr 10.8.0.0/24 oifname eth0 masquerade 2>/dev/null; }; sleep 5; done' >/dev/null 2>&1 &
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
