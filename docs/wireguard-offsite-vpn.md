@@ -83,20 +83,38 @@ the right server for `*.jesseisageek.com` names — k8s-gateway is.
    not a one-shot). The `10.8.0.0/24 dev wg0` route is left alone — it is
    required for the tunnel.
 
-5. **MASQUARDE ownership changed in v15.** The older image configured the
-   interface from `wg0.conf` with `PostUp` iptables hooks; the v15
-   (Node-based) app configures WireGuard through the API and manages NAT
-   itself — it installs a MASQUARDE rule (`10.8.0.0/24 -> eth0`) in the
-   *legacy* iptables table at pod start, observed live. If that rule ever
-   disappears, phone->LAN packets leave with the client's real `10.8.0.x`
-   source and replies get dropped at the router (no `10.8.0.0/24` route,
-   by design). **Fix:** the same `postStart` loop also maintains an
-   nftables MASQUARDE rule (`ip nat masq_post`) as a safety net. Note the
-   in-container `iptables` (nft backend) cannot add a `MASQUARDE` target
-   ("Chain 'MASQUARADE' does not exist"), and the legacy backend can't
-   load the target `.so` — so `nft` is the only usable tool for it
-   (chain spec needs double quotes; `priority 100`, displayed as
-   `srcnat`).
+5. **MASQUARDE/NAT inside the pod netns.** The v15 app writes
+   `/etc/wireguard/wg0.conf` and brings the interface up with `wg-quick`
+   (then `wg syncconf`); the generated `PostUp` includes
+   `iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth0 -j MASQUARADE`,
+   but the container's `iptables` is the **nft backend**, which cannot add
+   a `MASQUARDE` target ("Chain 'MASQUARDE' does not exist") — so that
+   PostUp line fails. What works in practice: the app installs the same
+   MASQUARDE rule in the **legacy** iptables table itself at startup
+   (observed in every healthy pod, counters moving). One pod started with
+   a broken app init (no `wg0.conf` at all, no NAT) and off-site LAN
+   access was dead until the pod was recreated. **Fix:** the `postStart`
+   loop maintains an nftables MASQUARDE rule (`ip nat masq_post`) as a
+   guaranteed safety net — `nft` is the only in-container tool that can
+   add it (the nft backend of `iptables` fails; the legacy backend can't
+   load the target `.so`; the nft chain spec needs double quotes and
+   `priority 100`, displayed as `srcnat`).
+
+6. **New clients silently lose LAN access (recurred twice).** A client
+   created without explicit per-client settings gets the app defaults:
+   `AllowedIPs = 0.0.0.0/0` (full tunnel) and `DNS = 1.1.1.1, 8.8.8.8` —
+   and the server-side peer `AllowedIPs` collapses to the client's `/32`.
+   The *client-side* `AllowedIPs` is what routes the home LAN into the
+   tunnel on the device; the server-side entry only filters incoming
+   sources, so the tunnel can look healthy (pings to `10.8.0.1` work,
+   packets even arrive at the server) while LAN traffic misbehaves and
+   internal names never resolve (public DNS answers
+   `sonarr.jesseisageek.com` with the Cloudflare edge, not `192.168.1.25`).
+   **Fix (the one that stuck, September 2026):** set per-client
+   `AllowedIPs = 10.8.0.0/24, 192.168.1.0/24` and
+   `DNS = 192.168.1.23` in the UI, then re-scan the QR on the device.
+   The app re-writes `wg0.conf` + `wg syncconf` on that change, which
+   also resets any stale server-side peer state.
 
 ## Repo changes
 
@@ -121,10 +139,14 @@ nohup sh -c 'while :; do
 done' >/dev/null 2>&1 &
 ```
 
-App-level config (lives in the PVC `wg-easy`, not the repo): global
-`host = vpn.jesseisageek.com`, port 30200; per-client `DNS =
-192.168.1.23`, `AllowedIPs = 10.8.0.0/24, 192.168.1.0/24`, persistent
-keepalive 25s.
+App-level config (lives in the PVC `wg-easy` as `wg-easy.db`, not the
+repo): global `host = vpn.jesseisageek.com`, port 30200; per-client
+`DNS = 192.168.1.23`, `AllowedIPs = 10.8.0.0/24, 192.168.1.0/24` on the
+JessePhone clients. `PersistentKeepalive` is 0 everywhere (the app
+default): a client only re-keys when it sends something, so after a
+server pod restart the tunnel stays dark until the phone next transmits
+or the user toggles the VPN. Set a 25s keepalive per client if that
+becomes a problem.
 
 ## Verifying
 
@@ -159,6 +181,13 @@ nslookup sonarr.jesseisageek.com    # must answer 192.168.1.25
 - `plex.local` (mDNS) only resolves through k8s-gateway's mDNS reflection;
   it can never resolve via normal upstream DNS or on a phone that isn't
   using `192.168.1.23` as its tunnel DNS.
+- **Pod restart kills the kernel-learned endpoints.** After any
+  recreation of the wg-easy pod, server->client sends fail with
+  "Destination Host Unreachable" until each client's next transmission
+  (or VPN toggle) lets the kernel re-learn its endpoint. Client->server
+  traffic and client->LAN traffic self-heal on demand; the app's
+  60s cron only re-saves the config when a client or one-time link
+  expires, so it does not flap endpoints on its own.
 - The nft `masq_post` chain and the app's legacy rule can coexist
   harmlessly: after either one masquerades a packet, its source no longer
   matches `10.8.0.0/24`, so the other can't double-masquerade.
