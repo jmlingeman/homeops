@@ -89,10 +89,14 @@ spec:
 
     service:
       main:
+        primary: true
+        controller: main
         ports:
           http:
             port: *port
       youtarr-db:
+        controller: youtarr-db
+        nameOverride: db
         ports:
           mysql:
             port: 3306
