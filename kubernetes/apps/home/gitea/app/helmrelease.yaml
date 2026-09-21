@@ -50,6 +50,10 @@ spec:
       persistence:
         enabled: true
 
+    gitea:
+      config:
+        database:
+          HOST: gitea-postgresql-ha-postgresql-0.gitea-postgresql-ha-postgresql-headless.home.svc.cluster.local:5432
     postgresql-ha:
       postgresql:
         image:
