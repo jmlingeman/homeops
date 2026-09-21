@@ -50,3 +50,10 @@ spec:
       persistence:
         enabled: true
 
+    postgresql-ha:
+      postgresql:
+        image:
+          tag: 16.3.0-debian-12-r2
+      pgpool:
+        replicaCount: 0
+

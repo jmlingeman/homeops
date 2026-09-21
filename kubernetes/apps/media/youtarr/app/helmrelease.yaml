@@ -28,9 +28,11 @@ spec:
     keepHistory: false
   values:
     controllers:
-      youtarr-db:
-        containers:
-          youtarr-db:
+      main:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        sidecars:
+          db:
             image:
               repository: mariadb
               tag: 10.3
@@ -45,9 +47,6 @@ spec:
               MYSQL_TCP_PORT: 3306
               MYSQL_CHARSET: utf8mb4
               MYSQL_COLLATION: utf8mb4_unicode_ci
-      main:
-        annotations:
-          reloader.stakater.com/auto: "true"
         containers:
           main:
             image:
@@ -57,7 +56,7 @@ spec:
             env:
               PORT: &port 3011
               TZ: ${TZ:-UTC}
-              DB_HOST: youtarrdb
+              DB_HOST: 127.0.0.1
               DB_PORT: 3306
               DB_USER: root
               DB_PASSWORD:
@@ -119,8 +118,17 @@ spec:
         enabled: true
         mountPath: /config
         storageClass: longhorn
-        size: 2Gi
+        size: 16Gi
         retain: true
+
+      db:
+        enabled: true
+        mountPath: /var/lib/mysql
+        storageClass: longhorn
+        size: 1Gi
+        retain: true
+        resources:
+          - db
 
       downloads:
         enabled: true
