@@ -58,34 +58,12 @@ spec:
       postgresql:
         image:
           tag: 16.3.0-debian-12-r20
-        repmgrConfiguration: |-
-            event_notification_command='/opt/bitnami/repmgr/events/router.sh %n %e %s "%t" "%d"'
-            ssh_options='-o "StrictHostKeyChecking no" -v'
-            use_replication_slots='1'
-            pg_bindir='/opt/bitnami/postgresql/bin'
-
-            # FIXME: these 2 parameter should work
-            node_id=1000
-            node_name='gitea-postgresql-ha-postgresql-0'
-            location='default'
-            conninfo='user=repmgr password=changeme2 host=gitea-postgresql-ha-postgresql-0.gitea-postgresql-ha-postgresql-headless.home.svc.cluster.local dbname=repmgr port=5432 connect_timeout=5'
-            # failover='manual': standbys monitor but never auto-promote; primary pod
-            # restarts (rollouts, reboots) no longer trigger cascading failovers.
-            # Manual failback/promotion: pg_promote() + repmgr.nodes/voting_term updates on the new primary.
-            failover='manual'
-            promote_command='PGPASSWORD=changeme2 repmgr standby promote -f "/opt/bitnami/repmgr/conf/repmgr.conf" --log-level DEBUG --verbose'
-            follow_command='PGPASSWORD=changeme2 repmgr standby follow -f "/opt/bitnami/repmgr/conf/repmgr.conf" -W --log-level DEBUG --verbose'
-            reconnect_attempts='2'
-            reconnect_interval='3'
-            log_level='NOTICE'
-            priority='100'
-            monitoring_history='no'
-            monitor_interval_secs='2'
-            degraded_monitoring_timeout='5'
-            data_directory='/bitnami/postgresql/data'
-            async_query_timeout='20'
-            pg_ctl_options='-o "--config-file=\"/opt/bitnami/postgresql/conf/postgresql.conf\" --external_pid_file=\"/opt/bitnami/postgresql/tmp/postgresql.pid\" --hba_file=\"/opt/bitnami/postgresql/conf/pg_hba.conf\""'
-            pg_basebackup_options=''
+        # 40 x 30s = 20min reconnect window before repmgrd promotes a standby.
+        # Short primary outages (STS rollouts, reboots) no longer trigger
+        # cascading auto-failovers; a truly dead primary promotes after ~20min
+        # (or manually: pg_promote() + repmgr.nodes/voting_term update on the new primary).
+        repmgrReconnectAttempts: 40
+        repmgrReconnectInterval: 30
       pgpool:
         replicaCount: 0
 
