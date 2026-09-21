@@ -167,3 +167,4 @@ spec:
           main:
             main:
               - path: /tv2
+# db service is consumed by main (SCLB)
