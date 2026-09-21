@@ -31,22 +31,26 @@ spec:
       main:
         annotations:
           reloader.stakater.com/auto: "true"
-        sidecars:
-          db:
-            image:
-              repository: mariadb
-              tag: 10.3
-            name: youtarrdb
+        extraContainers:
+          - name: db
+            image: "mariadb:10.3"
             env:
-              MYSQL_ROOT_PASSWORD:
+              - name: MYSQL_ROOT_PASSWORD
                 valueFrom:
                   secretKeyRef:
                     name: youtarr-secrets
                     key: POSTGRES_PASS
-              MYSQL_DATABASE: youtarr
-              MYSQL_TCP_PORT: 3306
-              MYSQL_CHARSET: utf8mb4
-              MYSQL_COLLATION: utf8mb4_unicode_ci
+              - name: MYSQL_DATABASE
+                value: youtarr
+              - name: MYSQL_TCP_PORT
+                value: "3306"
+              - name: MYSQL_CHARSET
+                value: utf8mb4
+              - name: MYSQL_COLLATION
+                value: utf8mb4_unicode_ci
+            volumeMounts:
+              - name: db
+                mountPath: /var/lib/mysql
         containers:
           main:
             image:
