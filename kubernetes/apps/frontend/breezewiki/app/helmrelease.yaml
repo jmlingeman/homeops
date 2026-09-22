@@ -4,6 +4,7 @@ kind: HelmRelease
 metadata:
   name: &app breezewiki
 spec:
+  suspend: true
   interval: 30m
   chart:
     spec:
