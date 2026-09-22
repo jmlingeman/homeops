@@ -31,9 +31,9 @@ spec:
           imagePullPolicy: Always
           main:
             image:
-              repository: docker.io/tagliasteel/redlib
+              repository: ghcr.io/nachtalb/redlib
+              tag: latest
               imagePullPolicy: Always
-            imagePullPolicy: Always
             env:
               LIBREDDIT_DEFAULT_SHOW_NSFW: true
             probes:
