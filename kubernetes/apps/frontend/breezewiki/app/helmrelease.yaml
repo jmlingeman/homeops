@@ -25,6 +25,8 @@ spec:
   values:
     controllers:
       main:
+        annotations:
+          note: "breezewiki runs as root (upstream docker-compose); see pod securityContext"
         replicas: 1
         strategy: RollingUpdate
         containers:
