@@ -31,8 +31,9 @@ spec:
           main:
             image:
               repository: quay.io/pussthecatorg/breezewiki
-              tag: latest
-              imagePullPolicy: Always
+              tag: ""
+              digest: "sha256:894746db2eef9f3887020d2fa2451f1d648a2ebe08dfef50caff61aa31d90882"
+              imagePullPolicy: IfNotPresent
             imagePullPolicy: Always
         pod:
           # The image ships its Racket packages in root's user-site
