@@ -11,3 +11,4 @@ resources:
   - ./homarr/ks.yaml
   - ./joplin/ks.yaml
   - ./meshchatx/ks.yaml
+  - ./affine/ks.yaml

@@ -1,0 +1,72 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: affine
+  namespace: home
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: 2.4.0
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 2
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controllers:
+      main:
+        annotations:
+          reloader.stakater.com/auto: 'true'
+        containers:
+          main:
+            image:
+              repository: mcr.microsoft.com/devcontainers/base
+              tag: bookworm
+              imagePullPolicy: IfNotPresent
+            imagePullPolicy: IfNotPresent
+            env:
+              TZ: ${TIMEZONE}
+              DATABASE_URL: postgresql://affine:affine@db:5432/affine
+              REDIS_SERVER_HOST: redis
+    service:
+      main:
+        ports:
+          http:
+            port: 80
+    ingress:
+      main:
+        enabled: true
+        className: internal
+        hosts:
+        - host: affine.${SECRET_DOMAIN}
+          paths:
+          - path: /
+            pathType: Prefix
+            service:
+              name: main
+              port: http
+        tls:
+        - hosts:
+          - affine.${SECRET_DOMAIN}
+        annotations:
+          hajimari.io/enable: 'true'
+    persistence:
+      data:
+        enabled: true
+        mountPath: /app/config
+        storageClass: longhorn
+        size: 10Gi
+        retain: true
+        accessMode: ReadWriteOnce

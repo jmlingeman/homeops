@@ -7,6 +7,6 @@ metadata:
     app.kubernetes.io/name: homepage
 data:
   config.ini: |
-    canonical_origin = https://breezewiki.jesseisageek.com
+    canonical_origin =
     debug = false
     port = 10416

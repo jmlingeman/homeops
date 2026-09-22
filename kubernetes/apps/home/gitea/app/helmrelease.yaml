@@ -50,20 +50,3 @@ spec:
       persistence:
         enabled: true
 
-    gitea:
-      config:
-        database:
-          HOST: gitea-postgresql-ha-postgresql-0.gitea-postgresql-ha-postgresql-headless.home.svc.cluster.local:5432
-    postgresql-ha:
-      postgresql:
-        image:
-          tag: 16.3.0-debian-12-r20
-        # 40 x 30s = 20min reconnect window before repmgrd promotes a standby.
-        # Short primary outages (STS rollouts, reboots) no longer trigger
-        # cascading auto-failovers; a truly dead primary promotes after ~20min
-        # (or manually: pg_promote() + repmgr.nodes/voting_term update on the new primary).
-        repmgrReconnectAttempts: 40
-        repmgrReconnectInterval: 30
-      pgpool:
-        replicaCount: 0
-
