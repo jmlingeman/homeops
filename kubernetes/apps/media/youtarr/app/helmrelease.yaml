@@ -167,4 +167,6 @@ spec:
           main:
             main:
               - path: /tv2
-# db service is consumed by main (SCLB)
+    annotations:
+      note: "youtarr-db is a separate controller; main consumes it via the service (Cilium SCLB)"
+
