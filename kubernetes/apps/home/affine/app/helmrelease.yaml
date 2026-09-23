@@ -43,8 +43,8 @@ spec:
               - ./scripts/self-host-predeploy.js
             env:
               TZ: ${TIMEZONE}
-              REDIS_SERVER_HOST: redis
-              DATABASE_URL: postgresql://affine@db:5432/affine
+              REDIS_SERVER_HOST: affine-redis
+              DATABASE_URL: postgresql://affine@affine-db:5432/affine
               AFFINE_INDEXER_ENABLED: 'false'
         containers:
           main:
@@ -54,8 +54,8 @@ spec:
               imagePullPolicy: Always
             env:
               TZ: ${TIMEZONE}
-              REDIS_SERVER_HOST: redis
-              DATABASE_URL: postgresql://affine@db:5432/affine
+              REDIS_SERVER_HOST: affine-redis
+              DATABASE_URL: postgresql://affine@affine-db:5432/affine
               AFFINE_INDEXER_ENABLED: 'false'
             ports:
               http:
@@ -109,7 +109,7 @@ spec:
             port: 6379
     persistence:
       config:
-        type: PVC
+        type: pvc
         accessMode: ReadWriteOnce
         size: 1Gi
         storageClass: longhorn
@@ -121,7 +121,7 @@ spec:
             migration:
               - path: /root/.affine/config
       storage:
-        type: PVC
+        type: pvc
         accessMode: ReadWriteOnce
         size: 10Gi
         storageClass: longhorn
@@ -133,7 +133,7 @@ spec:
             migration:
               - path: /root/.affine/storage
       db:
-        type: PVC
+        type: pvc
         accessMode: ReadWriteOnce
         size: 10Gi
         storageClass: longhorn
