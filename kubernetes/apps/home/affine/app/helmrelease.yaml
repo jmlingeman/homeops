@@ -25,26 +25,123 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    # AFFiNE (toeverything) self-hosted stack: app server + Postgres(pgvector)
+    # + Redis. The migration initContainer runs the predeploy script before
+    # the server starts (see docs.affine.pro/self-host-affine).
     controllers:
       main:
-        annotations:
-          reloader.stakater.com/auto: 'true'
+        type: Deployment
+        replicas: 1
+        initContainers:
+          migration:
+            image:
+              repository: ghcr.io/toeverything/affine
+              tag: stable
+              imagePullPolicy: Always
+            command:
+              - node
+              - ./scripts/self-host-predeploy.js
+            env:
+              TZ: ${TIMEZONE}
+              REDIS_SERVER_HOST: redis
+              DATABASE_URL: postgresql://affine@db:5432/affine
+              AFFINE_INDEXER_ENABLED: 'false'
         containers:
           main:
             image:
-              repository: mcr.microsoft.com/devcontainers/base
-              tag: bookworm
-              imagePullPolicy: IfNotPresent
-            imagePullPolicy: IfNotPresent
+              repository: ghcr.io/toeverything/affine
+              tag: stable
+              imagePullPolicy: Always
             env:
               TZ: ${TIMEZONE}
-              DATABASE_URL: postgresql://affine:affine@db:5432/affine
               REDIS_SERVER_HOST: redis
+              DATABASE_URL: postgresql://affine@db:5432/affine
+              AFFINE_INDEXER_ENABLED: 'false'
+            ports:
+              http:
+                name: http
+                protocol: TCP
+                port: 3010
+      db:
+        type: StatefulSet
+        replicas: 1
+        containers:
+          db:
+            image:
+              repository: pgvector/pgvector
+              tag: pg16
+              imagePullPolicy: IfNotPresent
+            env:
+              POSTGRES_USER: affine
+              POSTGRES_DB: affine
+              POSTGRES_HOST_AUTH_METHOD: trust
+            ports:
+              db:
+                name: db
+                protocol: TCP
+                port: 5432
+      redis:
+        type: Deployment
+        replicas: 1
+        containers:
+          redis:
+            image:
+              repository: redis
+              tag: '7'
+              imagePullPolicy: IfNotPresent
+            ports:
+              redis:
+                name: redis
+                protocol: TCP
+                port: 6379
     service:
       main:
         ports:
           http:
-            port: 80
+            port: 3010
+      db:
+        ports:
+          db:
+            port: 5432
+      redis:
+        ports:
+          redis:
+            port: 6379
+    persistence:
+      config:
+        type: PVC
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        storageClass: longhorn
+        retain: true
+        advancedMounts:
+          main:
+            main:
+              - /root/.affine/config
+            migration:
+              - /root/.affine/config
+      storage:
+        type: PVC
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        storageClass: longhorn
+        retain: true
+        advancedMounts:
+          main:
+            main:
+              - /root/.affine/storage
+            migration:
+              - /root/.affine/storage
+      db:
+        type: PVC
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        storageClass: longhorn
+        retain: true
+        advancedMounts:
+          db:
+            db:
+              - /var/lib/postgresql/data
     ingress:
       main:
         enabled: true
@@ -62,11 +159,3 @@ spec:
           - affine.${SECRET_DOMAIN}
         annotations:
           hajimari.io/enable: 'true'
-    persistence:
-      data:
-        enabled: true
-        mountPath: /app/config
-        storageClass: longhorn
-        size: 10Gi
-        retain: true
-        accessMode: ReadWriteOnce
