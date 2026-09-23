@@ -109,7 +109,7 @@ spec:
             port: 6379
     persistence:
       config:
-        type: pvc
+        type: persistentVolumeClaim
         accessMode: ReadWriteOnce
         size: 1Gi
         storageClass: longhorn
@@ -121,7 +121,7 @@ spec:
             migration:
               - path: /root/.affine/config
       storage:
-        type: pvc
+        type: persistentVolumeClaim
         accessMode: ReadWriteOnce
         size: 10Gi
         storageClass: longhorn
@@ -133,7 +133,7 @@ spec:
             migration:
               - path: /root/.affine/storage
       db:
-        type: pvc
+        type: persistentVolumeClaim
         accessMode: ReadWriteOnce
         size: 10Gi
         storageClass: longhorn
