@@ -7,13 +7,14 @@ spec:
   interval: 30m
   chart:
     spec:
-      chart: kubernetes-dashboard
+      # For GitRepository sources, `chart` is the path within the repo;
+      # the revision comes from the GitRepository's own spec.ref (tag).
+      chart: charts/kubernetes-dashboard
       version: 7.14.0
       sourceRef:
         kind: GitRepository
         name: kubernetes-retired-dashboard
         namespace: flux-system
-      path: charts/kubernetes-dashboard
   maxHistory: 2
   install:
     remediation:
