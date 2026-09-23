@@ -59,8 +59,6 @@ spec:
               AFFINE_INDEXER_ENABLED: 'false'
             ports:
               http:
-                name: http
-                protocol: TCP
                 port: 3010
       db:
         type: statefulset
@@ -77,8 +75,6 @@ spec:
               POSTGRES_HOST_AUTH_METHOD: trust
             ports:
               db:
-                name: db
-                protocol: TCP
                 port: 5432
       redis:
         type: deployment
@@ -91,8 +87,6 @@ spec:
               imagePullPolicy: IfNotPresent
             ports:
               redis:
-                name: redis
-                protocol: TCP
                 port: 6379
     service:
       main:
