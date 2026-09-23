@@ -64,6 +64,12 @@ spec:
       db:
         type: statefulset
         replicas: 1
+        statefulset:
+          volumeClaimTemplates:
+            - name: db
+              accessMode: ReadWriteOnce
+              size: 10Gi
+              storageClass: longhorn
         containers:
           db:
             image:
@@ -109,6 +115,7 @@ spec:
             port: 6379
     persistence:
       config:
+        enabled: true
         type: persistentVolumeClaim
         accessMode: ReadWriteOnce
         size: 1Gi
@@ -121,6 +128,7 @@ spec:
             migration:
               - path: /root/.affine/config
       storage:
+        enabled: true
         type: persistentVolumeClaim
         accessMode: ReadWriteOnce
         size: 10Gi
@@ -133,11 +141,11 @@ spec:
             migration:
               - path: /root/.affine/storage
       db:
+        enabled: false
         type: persistentVolumeClaim
         accessMode: ReadWriteOnce
         size: 10Gi
         storageClass: longhorn
-        retain: true
         advancedMounts:
           db:
             db:
