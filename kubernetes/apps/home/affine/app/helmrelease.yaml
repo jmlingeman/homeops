@@ -30,7 +30,7 @@ spec:
     # the server starts (see docs.affine.pro/self-host-affine).
     controllers:
       main:
-        type: Deployment
+        type: deployment
         replicas: 1
         initContainers:
           migration:
@@ -63,7 +63,7 @@ spec:
                 protocol: TCP
                 port: 3010
       db:
-        type: StatefulSet
+        type: statefulset
         replicas: 1
         containers:
           db:
@@ -81,7 +81,7 @@ spec:
                 protocol: TCP
                 port: 5432
       redis:
-        type: Deployment
+        type: deployment
         replicas: 1
         containers:
           redis:
