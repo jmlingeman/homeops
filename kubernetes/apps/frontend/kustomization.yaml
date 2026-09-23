@@ -8,6 +8,6 @@ resources:
   - ./rimgo/ks.yaml
   - ./priviblur/ks.yaml
   - ./quetre/ks.yaml
-  - ./scribe/ks.yaml
+  - ./libmedium/ks.yaml
   - ./libremdb/ks.yaml
   - ./librarian/ks.yaml
