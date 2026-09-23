@@ -9,11 +9,14 @@ spec:
   chart:
     spec:
       chart: kubernetes-dashboard
-      version: 6.0.8
+      version: 7.14.0
       sourceRef:
-        kind: HelmRepository
-        name: kubernetes-dashboard
+        kind: GitRepository
+        name: kubernetes-retired-dashboard
         namespace: flux-system
+      ref:
+        tag: kubernetes-dashboard-7.14.0
+      path: charts/kubernetes-dashboard
   maxHistory: 2
   install:
     remediation:
@@ -25,24 +28,40 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    extraArgs:
-      - --enable-insecure-login
-      - --enable-skip-login
-      - --disable-settings-authorizer
-    ingress:
-      enabled: true
-      className: internal
-      {% if homepage.enabled | default(false) %}
-      annotations:
-        gethomepage.dev/enabled: "true"
-        gethomepage.dev/icon: kubernetes-dashboard.png
-        gethomepage.dev/name: Kubernetes Dashboard
-        gethomepage.dev/group: Observability
-      {% endif %}
-      hosts:
-        - &host "kubernetes.${SECRET_DOMAIN}"
-      tls:
-        - hosts:
-            - *host
+    # The 7.x chart bundles a KONG gateway and its own ingress for the web
+    # role; this cluster publishes the dashboard through the k8s-gateway
+    # internal ingress instead (see extras.manifests below).
+    kong:
+      enabled: false
+    app:
+      ingress:
+        enabled: false
     metricsScraper:
       enabled: true
+    extras:
+      manifests:
+        - apiVersion: networking.k8s.io/v1
+          kind: Ingress
+          metadata:
+            name: kubernetes-dashboard
+            annotations:
+              gethomepage.dev/enabled: "true"
+              gethomepage.dev/icon: kubernetes-dashboard.png
+              gethomepage.dev/name: Kubernetes Dashboard
+              gethomepage.dev/group: Observability
+          spec:
+            ingressClassName: internal
+            tls:
+              - hosts:
+                  - "kubernetes.${SECRET_DOMAIN}"
+            rules:
+              - host: "kubernetes.${SECRET_DOMAIN}"
+                http:
+                  paths:
+                    - path: /
+                      pathType: Prefix
+                      backend:
+                        service:
+                          name: kubernetes-dashboard-web
+                          port:
+                            number: 8000

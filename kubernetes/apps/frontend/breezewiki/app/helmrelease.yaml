@@ -25,6 +25,8 @@ spec:
   values:
     controllers:
       main:
+        annotations:
+          note: "breezewiki runs as root (upstream docker-compose); see pod securityContext"
         replicas: 1
         strategy: RollingUpdate
         containers:
@@ -35,10 +37,16 @@ spec:
               imagePullPolicy: Always
             imagePullPolicy: Always
         pod:
+          # The image ships its Racket packages in root's user-site
+          # (/root/.local/share/racket/.../pkgs) and /app is root-owned, so the
+          # container must run as root — the upstream docker-compose does the
+          # same (no USER in the Dockerfile). Running as a non-root uid makes
+          # `require typed/ini` fail (packages invisible) and the app cannot
+          # create /app/storage.
           securityContext:
-            runAsUser: 568
-            runAsGroup: 568
-            runAsNonRoot: true
+            runAsUser: 0
+            runAsGroup: 0
+            runAsNonRoot: false
     ingress:
       main:
         enabled: true
@@ -59,7 +67,10 @@ spec:
       main:
         ports:
           http:
-            port: 3000
+            # app listens on 10416 (image EXPOSE / config.ini port); the old
+            # value of 3000 pointed at a closed port -> permanent 503
+            port: 10416
+            targetPort: 10416
     persistence:
       config:
         enabled: true
@@ -68,3 +79,11 @@ spec:
         globalMounts:
           - subPath: config.ini
             path: /app/config.ini
+      # wiki data (SQLite) lives in /app/storage; must survive pod restarts
+      storage:
+        enabled: true
+        mountPath: /app/storage
+        storageClass: longhorn
+        size: 1Gi
+        retain: true
+        accessMode: "ReadWriteOnce"

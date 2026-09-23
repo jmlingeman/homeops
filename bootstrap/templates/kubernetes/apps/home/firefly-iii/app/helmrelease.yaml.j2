@@ -103,6 +103,10 @@ spec:
     persistence:
       config:
         enabled: true
-        existingClaim: fireflyiii-config-v1
-        mountPath: /var/www/html/firefly-iii/storage/upload
+        size: 1Gi
+        storageClass: longhorn
+        advancedMounts:
+          main:
+            main:
+              - path: /var/www/html/firefly-iii/storage/upload
 

@@ -36,9 +36,9 @@ spec:
             imagePullPolicy: Always
         pod:
           securityContext:
-            runAsUser: 568
-            runAsGroup: 568
-            runAsNonRoot: true
+            runAsUser: 0
+            runAsGroup: 0
+            runAsNonRoot: false
     ingress:
       main:
         enabled: true

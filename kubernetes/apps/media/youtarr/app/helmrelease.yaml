@@ -33,7 +33,7 @@ spec:
           youtarr-db:
             image:
               repository: mariadb
-              tag: 10.3
+              tag: "10.3"
             name: youtarrdb
             env:
               MYSQL_ROOT_PASSWORD:
@@ -42,7 +42,7 @@ spec:
                     name: youtarr-secrets
                     key: POSTGRES_PASS
               MYSQL_DATABASE: youtarr
-              MYSQL_TCP_PORT: 3306
+              MYSQL_TCP_PORT: "3306"
               MYSQL_CHARSET: utf8mb4
               MYSQL_COLLATION: utf8mb4_unicode_ci
       main:
@@ -57,7 +57,7 @@ spec:
             env:
               PORT: &port 3011
               TZ: ${TZ:-UTC}
-              DB_HOST: youtarrdb
+              DB_HOST: youtarr-db
               DB_PORT: 3306
               DB_USER: root
               DB_PASSWORD:
@@ -89,9 +89,17 @@ spec:
 
     service:
       main:
+        primary: true
+        controller: main
         ports:
           http:
             port: *port
+      youtarr-db:
+        controller: youtarr-db
+        nameOverride: db
+        ports:
+          mysql:
+            port: 3306
     ingress:
       main:
         enabled: true
@@ -117,25 +125,48 @@ spec:
     persistence:
       config:
         enabled: true
-        mountPath: /config
         storageClass: longhorn
-        size: 2Gi
+        size: 16Gi
         retain: true
+        advancedMounts:
+          main:
+            main:
+              - path: /config
+
+      db:
+        enabled: true
+        accessMode: ReadWriteOnce
+        storageClass: longhorn
+        size: 1Gi
+        retain: true
+        advancedMounts:
+          youtarr-db:
+            youtarr-db:
+              - path: /var/lib/mysql
 
       downloads:
         enabled: true
-        mountPath: /downloads
         type: custom
         volumeSpec:
           nfs:
             server: "192.168.1.30"
             path: "/mnt/pool1/downloads"
+        advancedMounts:
+          main:
+            main:
+              - path: /downloads
 
       temp:
         enabled: true
-        mountPath: /tv2
         type: custom
         volumeSpec:
           nfs:
             server: "192.168.1.30"
             path: "/mnt/pool2/temp"
+        advancedMounts:
+          main:
+            main:
+              - path: /tv2
+    annotations:
+      note: "youtarr-db is a separate controller; main consumes it via the service (Cilium SCLB)"
+
