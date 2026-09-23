@@ -1,0 +1,22 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: libmedium-config
+  namespace: frontend
+  labels:
+    app.kubernetes.io/name: libmedium
+data:
+  config.toml: |
+    debug = true
+    source_code = "https://git.batsense.net/realaravinth/libmedium"
+
+    [server]
+    # The port at which the server listens
+    port = 7000
+    # Enter 0.0.0.0 to listen on all available addresses
+    ip = "0.0.0.0"
+    # The public hostname of this instance
+    domain = "libmedium.${SECRET_DOMAIN}"
+    allow_registration = true
+    proxy_has_tls = false

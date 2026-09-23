@@ -30,7 +30,7 @@ spec:
     # the server starts (see docs.affine.pro/self-host-affine).
     controllers:
       main:
-        type: Deployment
+        type: deployment
         replicas: 1
         initContainers:
           migration:
@@ -43,8 +43,8 @@ spec:
               - ./scripts/self-host-predeploy.js
             env:
               TZ: ${TIMEZONE}
-              REDIS_SERVER_HOST: redis
-              DATABASE_URL: postgresql://affine@db:5432/affine
+              REDIS_SERVER_HOST: affine-redis
+              DATABASE_URL: postgresql://affine@affine-db:5432/affine
               AFFINE_INDEXER_ENABLED: 'false'
         containers:
           main:
@@ -54,17 +54,22 @@ spec:
               imagePullPolicy: Always
             env:
               TZ: ${TIMEZONE}
-              REDIS_SERVER_HOST: redis
-              DATABASE_URL: postgresql://affine@db:5432/affine
+              REDIS_SERVER_HOST: affine-redis
+              DATABASE_URL: postgresql://affine@affine-db:5432/affine
               AFFINE_INDEXER_ENABLED: 'false'
             ports:
-              http:
+              - containerPort: 3010
                 name: http
                 protocol: TCP
-                port: 3010
       db:
-        type: StatefulSet
+        type: statefulset
         replicas: 1
+        statefulset:
+          volumeClaimTemplates:
+            - name: db
+              accessMode: ReadWriteOnce
+              size: 10Gi
+              storageClass: longhorn
         containers:
           db:
             image:
@@ -76,12 +81,11 @@ spec:
               POSTGRES_DB: affine
               POSTGRES_HOST_AUTH_METHOD: trust
             ports:
-              db:
+              - containerPort: 5432
                 name: db
                 protocol: TCP
-                port: 5432
       redis:
-        type: Deployment
+        type: deployment
         replicas: 1
         containers:
           redis:
@@ -90,26 +94,29 @@ spec:
               tag: '7'
               imagePullPolicy: IfNotPresent
             ports:
-              redis:
+              - containerPort: 6379
                 name: redis
                 protocol: TCP
-                port: 6379
     service:
       main:
+        controller: main
         ports:
           http:
             port: 3010
       db:
+        controller: db
         ports:
           db:
             port: 5432
       redis:
+        controller: redis
         ports:
           redis:
             port: 6379
     persistence:
       config:
-        type: PVC
+        enabled: true
+        type: persistentVolumeClaim
         accessMode: ReadWriteOnce
         size: 1Gi
         storageClass: longhorn
@@ -117,11 +124,12 @@ spec:
         advancedMounts:
           main:
             main:
-              - /root/.affine/config
+              - path: /root/.affine/config
             migration:
-              - /root/.affine/config
+              - path: /root/.affine/config
       storage:
-        type: PVC
+        enabled: true
+        type: persistentVolumeClaim
         accessMode: ReadWriteOnce
         size: 10Gi
         storageClass: longhorn
@@ -129,19 +137,19 @@ spec:
         advancedMounts:
           main:
             main:
-              - /root/.affine/storage
+              - path: /root/.affine/storage
             migration:
-              - /root/.affine/storage
+              - path: /root/.affine/storage
       db:
-        type: PVC
+        enabled: false
+        type: persistentVolumeClaim
         accessMode: ReadWriteOnce
         size: 10Gi
         storageClass: longhorn
-        retain: true
         advancedMounts:
           db:
             db:
-              - /var/lib/postgresql/data
+              - path: /var/lib/postgresql/data
     ingress:
       main:
         enabled: true
