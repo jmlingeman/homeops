@@ -45,3 +45,14 @@ spec:
         name: cluster-settings
       - kind: Secret
         name: cluster-secrets
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: kubernetes-retired-dashboard
+  namespace: flux-system
+spec:
+  interval: 24h
+  ref:
+    tag: kubernetes-dashboard-7.14.0
+  url: "https://github.com/kubernetes-retired/dashboard.git"
