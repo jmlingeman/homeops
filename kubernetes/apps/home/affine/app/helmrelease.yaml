@@ -32,8 +32,6 @@ spec:
       main:
         type: deployment
         replicas: 1
-        nodeSelector:
-          kubernetes.io/hostname: kube-controller
         initContainers:
           migration:
             image:
@@ -66,8 +64,6 @@ spec:
       db:
         type: statefulset
         replicas: 1
-        nodeSelector:
-          kubernetes.io/hostname: kube-controller
         statefulset:
           volumeClaimTemplates:
             - name: db
