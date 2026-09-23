@@ -117,9 +117,9 @@ spec:
         advancedMounts:
           main:
             main:
-              - /root/.affine/config
+              - path: /root/.affine/config
             migration:
-              - /root/.affine/config
+              - path: /root/.affine/config
       storage:
         type: PVC
         accessMode: ReadWriteOnce
@@ -129,9 +129,9 @@ spec:
         advancedMounts:
           main:
             main:
-              - /root/.affine/storage
+              - path: /root/.affine/storage
             migration:
-              - /root/.affine/storage
+              - path: /root/.affine/storage
       db:
         type: PVC
         accessMode: ReadWriteOnce
@@ -141,7 +141,7 @@ spec:
         advancedMounts:
           db:
             db:
-              - /var/lib/postgresql/data
+              - path: /var/lib/postgresql/data
     ingress:
       main:
         enabled: true
