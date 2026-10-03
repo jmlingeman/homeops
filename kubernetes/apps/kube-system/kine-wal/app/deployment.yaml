@@ -28,7 +28,7 @@ spec:
         node-role.kubernetes.io/master: "true"
       containers:
         - name: kine-wal
-          image: alpine:3.20
+          image: alpine:3.24
           command:
             - /bin/sh
             - -c
