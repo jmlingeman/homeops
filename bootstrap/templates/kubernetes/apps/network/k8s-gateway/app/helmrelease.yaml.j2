@@ -31,16 +31,16 @@ spec:
     fullnameOverride: k8s-gateway
     domain: "${SECRET_DOMAIN}"
     ttl: 1
+    image:
+      # The upstream image was deleted from quay.io (discovered 2026-10-04;
+      # the project has been dormant since 2025-07). This is a rebuild from
+      # the v0.4.0 git tag (digest sha256:fb67d7fd…), mirrored on Docker Hub.
+      registry: docker.io
+      repository: smidget2k4/k8s_gateway
+      tag: v0.4.0
     service:
       type: LoadBalancer
       port: 53
       annotations:
         lbipam.cilium.io/ip: "{{ bootstrap_k8s_gateway_addr }}"
       externalTrafficPolicy: Cluster
-    # The upstream image quay.io/oriedge/k8s_gateway:v0.4.0 was deleted from
-    # quay.io (discovered 2026-10-04; the repo has been dormant since 2025-07).
-    # Only the k3s primary still has the image in its local containerd cache,
-    # so pin the pod there (pullPolicy IfNotPresent makes this a cache hit).
-    # If this image source is ever restored/mirrored, the pin can be relaxed.
-    nodeSelector:
-      kubernetes.io/hostname: kube-controller
