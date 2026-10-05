@@ -1,0 +1,28 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: miniflux
+  namespace: feeds
+  annotations:
+    # public DNS: CNAME external.${SECRET_DOMAIN} (the Cloudflare edge);
+    # the tunnel fronts everything to nginx-external which routes by Host
+    external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
+    external-dns.alpha.kubernetes.io/enabled: "true"
+spec:
+  ingressClassName: external
+  tls:
+    - hosts:
+        - "rss.${SECRET_DOMAIN}"
+      secretName: "${SECRET_DOMAIN/./-}-production-tls"
+  rules:
+    - host: "rss.${SECRET_DOMAIN}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: miniflux
+                port:
+                  number: 80
