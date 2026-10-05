@@ -36,7 +36,7 @@ spec:
           # WAL grew unchecked until it tripped the kubelet's DiskPressure
           # threshold on 2026-10-03, evicting cluster DNS (k8s-gateway)
           # and this pod and dead-locking the whole cluster's pod DNS.
-          image: python:3.11-alpine
+          image: python:3.14-alpine
           command:
             - python3
             - -u
