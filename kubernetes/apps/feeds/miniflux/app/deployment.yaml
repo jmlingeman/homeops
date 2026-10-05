@@ -16,6 +16,19 @@ spec:
       labels:
         app.kubernetes.io/name: *app
     spec:
+      initContainers:
+        - name: migrate
+          image: quay.io/miniflux/miniflux:2.3.3
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: miniflux-secret
+                  key: DATABASE_URL
+          command:
+            - miniflux
+            - --migrate
       containers:
         - name: *app
           image: quay.io/miniflux/miniflux:2.3.3
