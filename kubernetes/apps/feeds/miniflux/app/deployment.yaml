@@ -44,6 +44,10 @@ spec:
                   key: DATABASE_URL
             - name: LISTEN_ADDR
               value: ":8080"
+            # 2.3: admin user is only created from ADMIN_* when CREATE_ADMIN is set
+            # (idempotent: skipped if the user already exists)
+            - name: CREATE_ADMIN
+              value: "true"
             - name: ADMIN_USERNAME
               value: "jesse"
             - name: ADMIN_PASSWORD
