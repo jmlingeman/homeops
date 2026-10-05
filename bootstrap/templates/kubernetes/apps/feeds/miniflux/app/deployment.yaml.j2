@@ -46,6 +46,9 @@ spec:
               value: ":8080"
             # 2.3: admin user is only created from ADMIN_* when CREATE_ADMIN is set
             # (idempotent: skipped if the user already exists)
+            # allow the fetcher to reach the cluster-internal rss-fulltext enricher
+            - name: FETCHER_ALLOW_PRIVATE_NETWORKS
+              value: "true"
             - name: CREATE_ADMIN
               value: "true"
             - name: ADMIN_USERNAME
