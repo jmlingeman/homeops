@@ -22,7 +22,7 @@ spec:
         runAsUser: 0
       containers:
         - name: *app
-          image: miniflux/v2:2.3.3
+          image: quay.io/miniflux/miniflux:2.3.3
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
