@@ -28,10 +28,8 @@ spec:
             - name: http
               containerPort: 8080
           env:
-            - name: DATABASE_TYPE
-              value: sqlite3
-            - name: DATABASE_NAME
-              value: /db/miniflux.db
+            - name: DATABASE_URL
+              value: "sqlite3:///db/miniflux.db"
             - name: LISTEN_ADDR
               value: ":8080"
             - name: ADMIN_USERNAME
