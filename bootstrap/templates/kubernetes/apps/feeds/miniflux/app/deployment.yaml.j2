@@ -16,10 +16,6 @@ spec:
       labels:
         app.kubernetes.io/name: *app
     spec:
-      # run as root so the longhorn volume (root-owned) is writable;
-      # the miniflux image ships a non-root USER by default
-      securityContext:
-        runAsUser: 0
       containers:
         - name: *app
           image: quay.io/miniflux/miniflux:2.3.3
@@ -29,7 +25,10 @@ spec:
               containerPort: 8080
           env:
             - name: DATABASE_URL
-              value: "sqlite3:///db/miniflux.db"
+              valueFrom:
+                secretKeyRef:
+                  name: miniflux-secret
+                  key: DATABASE_URL
             - name: LISTEN_ADDR
               value: ":8080"
             - name: ADMIN_USERNAME
@@ -60,10 +59,3 @@ spec:
             limits:
               cpu: 500m
               memory: 512Mi
-          volumeMounts:
-            - name: db
-              mountPath: /db
-      volumes:
-        - name: db
-          persistentVolumeClaim:
-            claimName: miniflux
