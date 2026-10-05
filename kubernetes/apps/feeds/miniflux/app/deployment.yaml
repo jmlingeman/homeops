@@ -49,6 +49,8 @@ spec:
             # allow the fetcher to reach the cluster-internal rss-fulltext enricher
             - name: FETCHER_ALLOW_PRIVATE_NETWORKS
               value: "true"
+            - name: FETCHER_TIMEOUT
+              value: "60"
             - name: CREATE_ADMIN
               value: "true"
             - name: ADMIN_USERNAME

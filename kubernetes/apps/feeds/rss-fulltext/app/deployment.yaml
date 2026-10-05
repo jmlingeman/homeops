@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: *app
-          image: smidget2k4/rss-fulltext:v1
+          image: smidget2k4/rss-fulltext:v4
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
