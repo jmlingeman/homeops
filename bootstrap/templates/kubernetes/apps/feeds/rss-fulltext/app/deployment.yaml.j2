@@ -18,8 +18,14 @@ spec:
     spec:
       containers:
         - name: *app
-          image: smidget2k4/rss-fulltext:v5
+          image: smidget2k4/rss-fulltext:v6
           imagePullPolicy: IfNotPresent
+          env:
+            - name: ARTICLE_COOKIES
+              valueFrom:
+                secretKeyRef:
+                  name: rss-fulltext-secret
+                  key: ARTICLE_COOKIES
           ports:
             - name: http
               containerPort: 8080
