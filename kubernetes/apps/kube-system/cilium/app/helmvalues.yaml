@@ -7,14 +7,16 @@ data:
   values.yaml: |
     autoDirectNodeRoutes: true
     bpf:
-      masquerade: true
+      # 1.16.19 BPF NAT (SNAT/DNAT) corrupts UDP checksums on the fast path;
+      # phone (WireGuard) traffic must exit with a valid UDP checksum.
+      masquerade: false
+      # force the kernel (stack) routing path so node nft MASQUERADE applies
+      hostLegacyRouting: true
     bgp:
       enabled: false
     cluster:
       name: home-cluster
       id: 1
-    egressGateway:
-      enabled: true
     endpointRoutes:
       enabled: true
     hubble:
