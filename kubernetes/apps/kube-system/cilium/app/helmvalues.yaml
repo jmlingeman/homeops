@@ -13,6 +13,8 @@ data:
     cluster:
       name: home-cluster
       id: 1
+    egressGateway:
+      enabled: true
     endpointRoutes:
       enabled: true
     hubble:
