@@ -120,7 +120,7 @@ All public URLs are `*.jesseisageek.com` through Cloudflare (proxied). "Status"
 
 **Everything else is internal-only** (`className: internal`, default):
 `home.` (homepage), `sonarr.`, `radarr.`, `lidarr.`, `prowlarr.`, `sabnzbd.`,
-`overseerr.`, `youtarr.`, `jellyfin.` (dormant), `actual.`, `firefly.`,
+`overseerr.`, `youtarr.`, `actual.`, `firefly.`,
 `firefly-importer.`, `homarr.`, `joplin.`, `mealie.`, `postgres.`, `grafana.`,
 `prometheus.`, `kubernetes.`, `hubble.`, `longhorn.`, `internal.` — reachable
 from the LAN via split-DNS, **not** from the internet.

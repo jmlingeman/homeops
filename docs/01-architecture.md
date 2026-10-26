@@ -20,7 +20,7 @@ VIPs (Cilium L2 / kube-vip style static IPs, see `bootstrap/vars/config.yaml`):
 | 192.168.1.24 | `nginx-external` ingress LoadBalancer |
 | 192.168.1.25 | `nginx-internal` ingress LoadBalancer |
 | 192.168.1.30 | NFS server (media/storage host, `nfs.local`) |
-| 192.168.1.211 | External Jellyfin/Plex VM (jellyfin static endpoint target) |
+| 192.168.1.211 | External Jellyfin/Plex VM (service down as of 2026-10-26; in-cluster proxy removed) |
 
 CIDRs: node `192.168.1.0/24`, pod `10.42.0.0/16`, service `10.43.0.0/16` (CoreDNS at 10.43.0.10).
 Cilium LB mode: `dsr`.
@@ -163,7 +163,7 @@ flowchart LR
 |-------|------|-------|
 | **Longhorn** (charts.longhorn.io, `storage` ns) | default local distributed block storage; StorageClass `longhorn` (RWX/RWO, snapshots). App configs mount 1–16 Gi PVCs. Recurring jobs: daily snapshots, daily trim, weekly backup. | node-local disks |
 | **openEBS local-hostpath** (openebs chart, `storage` ns) | provisioner `openebs-hostpath` (hostpath, single node, `bootstrap_local_storage_path: /var/openebs/local`) — used by `postgresql`, `grafana`, `kube-prometheus-stack` | `openebs-hostpath` SC |
-| **NFS** (`192.168.1.30`, `nfs.local`) | media pools: `/mnt/pool1/{tv,backup,downloads,vaultwarden}`, `/mnt/pool2/{tv,movies,music,temp,audiobooks}` — mounted by *arr/piped/jellyfin-adjacent apps via `type: custom volumeSpec.nfs` in app-template | NFS server |
+| **NFS** (`192.168.1.30`, `nfs.local`) | media pools: `/mnt/pool1/{tv,backup,downloads,vaultwarden}`, `/mnt/pool2/{tv,movies,music,temp,audiobooks}` — mounted by *arr/piped apps via `type: custom volumeSpec.nfs` in app-template | NFS server |
 
 Variable `NFS_SERVER` (= `192.168.1.30`, see `cluster-secrets`) is the intended substitute for
 the server IP; some manifests hardcode `192.168.1.30` (see 03-configuration.md).
@@ -194,7 +194,7 @@ Per-app PVC/mount map and how to pick a layer: [07-storage.md](07-storage.md).
 | cert-manager | certificates | cert-manager (+issuers) |
 | storage | longhorn, openebs | 2 |
 | database | shared postgres | postgresql (bitnami) |
-| media | *arr stack, streaming | jellyfin (external proxy), lidarr, overseerr, prowlarr, radarr, sabnzbd, sonarr, ultrasonics, youtarr, piped |
+| media | *arr stack, streaming | lidarr, overseerr, prowlarr, radarr, sabnzbd, sonarr, ultrasonics, youtarr, piped |
 | home | personal apps | actual, firefly-iii (+importer), gitea, grocy, homarr, joplin, mealie, transiter |
 | frontend | privacy frontends | breezewiki, librarian, libreddit (Redlib), libremdb, priviblur, quetre, rimgo, scribe |
 | default | homepage | homepage |

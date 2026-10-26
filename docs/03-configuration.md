@@ -49,7 +49,7 @@ Template-provided keys (current values for this cluster):
 | `media_sonarr_api_key` | `698881…` | sonarr (API for exportarr/overseerr) |
 | `media_postgres_user/password` | `piped` / `0ai9eg…` | piped (its own postgres) |
 | `minio_root_user/password` | `admin` / `0984u6…` | (declared; no minio app currently deployed) |
-| `plex_url` / `plex_token` | `192.168.1.40` / `kc6CwB…` | (declared for a future plex companion; jellyfin is external) |
+| `plex_url` / `plex_token` | `192.168.1.40` / `kc6CwB…` | (declared for a future plex companion) |
 | `media_deezer_arl_token` | `fe499e…` | (declared; for Deezer ARL use) |
 | `home_firefly3_app_key` / `home_firefly3_db_name` / `home_firefly3_access_token` / `home_firefly3_cron_token` | … | firefly-iii sops secret (`API_KEY`, `POSTGRES_DB`, …) |
 | `homarr-db-encryption-key` | `09043j…` | (commented out / unused) |

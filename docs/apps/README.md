@@ -16,7 +16,7 @@ secrets, and anything unusual. Deployment status:
 | [cert-manager](cert-manager.md) | cert-manager (+ ClusterIssuers) |
 | [storage](storage.md) | longhorn, openebs |
 | [database](database.md) | postgresql |
-| [media](media.md) | jellyfin (external proxy), lidarr, overseerr, prowlarr, radarr, sabnzbd, sonarr, piped, youtarr; ⚠️ ultrasonics (orphaned) |
+| [media](media.md) | lidarr, overseerr, prowlarr, radarr, sabnzbd, sonarr, piped, youtarr; ⚠️ ultrasonics (orphaned) |
 | [home](home.md) | actual, firefly-iii (+importer), gitea, grocy, homarr, joplin, mealie; ⚠️ transiter (orphaned) |
 | [frontend](frontend.md) | breezewiki, librarian, libreddit, libremdb, priviblur, quetre, rimgo, scribe |
 | [default](default.md) | homepage |
@@ -40,10 +40,6 @@ secrets, and anything unusual. Deployment status:
   any of the four substitution sources** (`cluster-settings*` / `cluster-secrets*`) → the
   Kustomization build fails and the app never deploys. Fix: add `SECRET_CLUSTER_DOMAIN` to
   `kubernetes/flux/vars/cluster-secrets.sops.yaml` (or change the env to `${SECRET_DOMAIN}`).
-- **`media/jellyfin`** — deployed, but its ingress uses `ingressClassName: nginx` (a class
-  that doesn't exist here — only `internal` and `external` are defined) and a hardcoded TLS
-  secret `tls-dev-com` → the ingress has no address; treat it as a dormant external-proxy
-  stub for the Jellyfin at `192.168.1.211:8096`.
 
 ## Conventions used by every app
 

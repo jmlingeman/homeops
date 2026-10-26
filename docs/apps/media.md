@@ -8,7 +8,6 @@ internal ingress, Longhorn config PVC, NFS data on 192.168.1.30
 
 ```
 overseerr (requests) ──► sonarr / radarr / lidarr / youtarr ──► sabnzbd (usenet) + prowlarr (indexers)
-jellyfin (external, 192.168.1.211) plays /tv /movies /music /downloads
 piped (public YouTube front), ultrasonics (Plex scrobble), piped/ytproxy
 ```
 
@@ -52,16 +51,6 @@ hungry). No hajimari/dashboard.
 Request portal (image `sctx/overseerr`, port 5055 — the `sctx` fork keeps the old
 port; official overseerr uses 5055 too in v1 but this is the maintained community
 fork). Config 16Gi longhorn. Hajimari `television-box`.
-
-## jellyfin ⚠️
-
-**Not running in-cluster** — a kustomize-only app (no HelmRelease) made of
-`service.yaml` + **static `endpoint.yaml`** (points to `192.168.1.211:8096`, the
-external Jellyfin VM) + `ingress.yaml`
-(host `jellyfin.${SECRET_DOMAIN}`, `rewrite-target: /`).
-⚠ `ingressClassName: nginx` — a class that doesn't exist here (only `internal` /
-`external`) and a hardcoded `secretName: tls-dev-com` → the ingress never gets an
-address. Dormant stub; fix the class + TLS secret if you want it live.
 
 ## piped
 

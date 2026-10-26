@@ -67,8 +67,7 @@ kubernetes/apps/<ns>/
 
 Two variants. **A1 (bjw-s `app-template`) is the house pattern** — most apps in this cluster
 use it (sonarr, radarr, overseerr, ultrasonics, joplin, actual, …). A2 (raw kustomize) is for
-apps you want to control manifest-by-manifest (the only current user is `jellyfin`, which
-is actually an external proxy — see [05-apps/media.md](apps/media.md)).
+apps you want to control manifest-by-manifest (no current app uses it — the former `jellyfin` external proxy was the last user).
 
 ### A1. app-template HelmRelease (recommended)
 
@@ -220,9 +219,10 @@ Notes:
 
 ### A2. Raw kustomize (no Helm)
 
-Use when the app has no decent chart and you want plain manifests. Example in the wild here:
-`media/jellyfin` — `app/` contains `service.yaml` + `endpoint.yaml` + `ingress.yaml` and a
-`kustomization.yaml` listing them (no `helmrelease.yaml`). For a normal in-cluster
+Use when the app has no decent chart and you want plain manifests. The former
+`media/jellyfin` external proxy (removed 2026-10) was built this way: `app/` contained
+`service.yaml` + `endpoint.yaml` + `ingress.yaml` and a `kustomization.yaml`
+listing them (no `helmrelease.yaml`). For a normal in-cluster
 container you'd write `deployment.yaml` + `service.yaml` + `ingress.yaml` instead.
 
 `ks.yaml` is identical to A1 (the Kustomization doesn't care what's in `app/`).

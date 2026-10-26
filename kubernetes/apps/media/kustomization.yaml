@@ -9,7 +9,6 @@ resources:
   - ./piped/ks.yaml
   - ./lidarr/ks.yaml
   - ./prowlarr/ks.yaml
-  - ./jellyfin/ks.yaml
   - ./overseerr/ks.yaml
   - ./youtarr/ks.yaml
   - ./seerr/ks.yaml
