@@ -21,7 +21,7 @@ see gotchas at the end).
 | metrics-server | 3.11.0 (`apps/kube-system/metrics-server/…`) | 3.14.0 | 🟡 | |
 | descheduler | 0.29.0 (`apps/tools/descheduler/…`) | 0.36.0 | 🟡 | |
 | Reloader | 1.0.62 (`apps/tools/reloader/…`) | 2.2.16 (app v1.4.21) | 🔴 | Chart is on a new 2.x series — major bump needs a values review. |
-| Longhorn | 1.5.3 (`apps/storage/longhorn/…`) | 1.12.1 | 🔴 | 7 minors behind; upgrade is k8s-version gated — do it *after* the k3s bump and check the compatibility matrix. |
+| Longhorn | 1.12.1 (`apps/storage/longhorn/…`) | 1.12.1 | 🟢 | 2026-10-26: upgraded 1.5.3 → 1.12.1 (k8s 1.29 is above the 1.21 floor; below the 1.33–1.36 test set but compatible). Unblocks volume shrink. |
 | openeBS localpv | 3.10.0 (`apps/storage/openebs/…`) | 3.10.0 (latest in repo) | ⚪️ | The repo hasn't published past 3.10.0, but the project moved to `dynamic-localpv-provisioner` (v4.6.0) — chart lags the app by two majors. |
 
 ## 2. Applications (Flux HelmReleases — `kubernetes/apps/**`)
@@ -123,7 +123,7 @@ is the model) or digests.
    maintenance window; expect value/API changes.
 5. **cloudflared 2024.1.2** — the tunneling binary is 2.5 years old; it works,
    but Cloudflare occasionally deprecates old clients (QUIC/tunnel API).
-6. **k3s 1.29** gates the rest (Longhorn, some chart min-k8s). Plan it as a
+6. **k3s 1.29** gates the rest (some chart min-k8s — Longhorn was the big one and is now 1.12.1). Plan it as a
    project: bump `k3s_release_version`, `task k3s` (master `--server`, worker
    `--agent`), then re-run this audit.
 
