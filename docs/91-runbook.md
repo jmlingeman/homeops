@@ -110,6 +110,18 @@ Only works once the **production** cert is in place (public ingress path).
   (enable `UI.enabled` in the HelmRelease values if not enabled) or use the kubectl plugins.
 - Data on PVCs: Longhorn volumes live on node disks; NFS media lives on 192.168.1.30.
 
+- **Upgrading Longhorn** (learned 2026-10-26, 1.5.3 → 1.12.1): Longhorn enforces
+  one-minor upgrade paths since v1.5.0 — the chart's pre-upgrade job rejects multi-minor
+  jumps. To move several minor versions: bump `spec.chart.spec.version` one minor at a
+  time (commit + push per step, wait for the HelmRelease to be Ready before the next).
+  Gotcha: `concurrent-automatic-engine-upgrade-per-node-limit` is `0` on this cluster,
+  so chart upgrades do **not** live-upgrade the running engines. To move them, patch it
+  to e.g. `5` (`kubectl -n storage patch setting.longhorn.io
+  concurrent-automatic-engine-upgrade-per-node-limit --type merge -p '{"value":"5"}'`),
+  let all engines switch, set it back to `0`, then delete the now-unreferenced
+  engine-image CRs (`kubectl get engineimages -n storage` — refcount 0), which the
+  controller does not GC on its own.
+
 ## Destructive operations
 
 | Action | Command |
