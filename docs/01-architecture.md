@@ -23,7 +23,7 @@ VIPs (Cilium L2 / kube-vip style static IPs, see `bootstrap/vars/config.yaml`):
 | 192.168.1.211 | External Jellyfin/Plex VM (service down as of 2026-10-26; in-cluster proxy removed) |
 
 CIDRs: node `192.168.1.0/24`, pod `10.42.0.0/16`, service `10.43.0.0/16` (CoreDNS at 10.43.0.10).
-Cilium LB mode: `dsr`.
+Cilium LB mode: `snat` (was `dsr` until 2026-10-27: DSR broke the return path for BPF-LB VIP traffic forwarded+masqueraded through the wg-easy pod netns — off-network WireGuard clients could not reach 192.168.1.24/.25).
 
 ## Control plane: Flux
 

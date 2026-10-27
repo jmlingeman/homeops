@@ -5,7 +5,7 @@ Cluster networking and DNS plumbing.
 ## cilium
 
 CNI + service-mesh-free networking layer (chart `cilium` 1.14.5, repo `cilium`).
-Replaces kube-proxy (MAGLOAD/DSR L4 LB, `bootstrap_cilium_loadbalancer_mode: dsr`),
+Replaces kube-proxy (MAGLEV/SNAT L4 LB, `bootstrap_cilium_loadbalancer_mode: snat`),
 provides **L2 announcements** (so the static VIPs 192.168.1.22–.25 work as
 LoadBalancers) and runs **Hubble** (observability).
 

@@ -29,7 +29,7 @@ Template-provided keys (current values for this cluster):
 | `bootstrap_k8s_gateway_addr` | `192.168.1.23` | k8s-gateway LB IP |
 | `bootstrap_external_ingress_addr` | `192.168.1.24` | nginx-external LB IP |
 | `bootstrap_internal_ingress_addr` | `192.168.1.25` | nginx-internal LB IP |
-| `bootstrap_cilium_loadbalancer_mode` | `dsr` | `dsr` (default) or `snat` |
+| `bootstrap_cilium_loadbalancer_mode` | `snat` | `dsr` (default) or `snat`; set to `snat` on 2026-10-27 to fix WireGuard clients reaching the .24/.25 LB VIPs (Cilium 1.16 has no per-service mode override) |
 | `bootstrap_ipv6_enabled` | `false` | (advanced) |
 | `bootstrap_cluster_cidr` / `bootstrap_service_cidr` | `10.42.0.0/16` / `10.43.0.0/16` | → `cluster-settings.{CLUSTER,SERVICE}_CIDR` |
 | `bootstrap_local_storage_path` | `/var/openebs/local` | openebs-hostpath mount |

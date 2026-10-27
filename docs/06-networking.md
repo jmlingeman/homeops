@@ -127,8 +127,10 @@ from the LAN via split-DNS, **not** from the internet.
 
 ## Internal cluster networking
 
-- **Cilium** is the CNI and replaces kube-proxy (DSR load balancing,
-  `bootstrap_cilium_loadbalancer_mode: dsr`).
+- **Cilium** is the CNI and replaces kube-proxy (SNAT load balancing,
+  `bootstrap_cilium_loadbalancer_mode: snat`; switched from `dsr` on 2026-10-27
+  because DSR's direct return path failed for WireGuard traffic masqueraded
+  through the wg-easy pod netns).
 - **Static IPs** (LoadBalancers) via `io.cilium/lb-ipam-ips` annotations +
   **L2 announcements** (`CiliumL2AnnouncementPolicy` + `CiliumLoadBalancerIPPool`
   over the node CIDR, in `kube-system/cilium/app/cilium-l2.yaml`) — this is how
