@@ -33,6 +33,7 @@ spec:
         annotations:
           external-dns.alpha.kubernetes.io/hostname: "internal.${SECRET_DOMAIN}"
           lbipam.cilium.io/ip: "{{ bootstrap_internal_ingress_addr }}"
+          service.cilium.io/load-balancer-mode: snat
         externalTrafficPolicy: Cluster
       ingressClassResource:
         name: internal
