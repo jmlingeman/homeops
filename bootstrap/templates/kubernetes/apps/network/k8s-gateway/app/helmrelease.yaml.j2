@@ -31,6 +31,15 @@ spec:
     fullnameOverride: k8s-gateway
     domain: "${SECRET_DOMAIN}"
     ttl: 1
+    # The k8s_gateway plugin is authoritative for the zone and answered NXDOMAIN
+    # for any name not backed by a watched k8s resource. Off-LAN VPN clients
+    # (phone DNS = Pi-hole .10 -> .23, "LAN view") therefore could never resolve
+    # public *.jesseisageek.com names. Fallthrough forwards unknown zone names
+    # to the upstream forwarder so they resolve to public records.
+    fallthrough:
+      enabled: true
+      zones:
+        - "${SECRET_DOMAIN}"
     image:
       # The upstream image was deleted from quay.io (discovered 2026-10-04;
       # the project has been dormant since 2025-07). This is a rebuild from
