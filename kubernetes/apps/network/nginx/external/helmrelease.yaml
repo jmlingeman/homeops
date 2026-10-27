@@ -34,7 +34,6 @@ spec:
         annotations:
           external-dns.alpha.kubernetes.io/hostname: "external.${SECRET_DOMAIN}"
           lbipam.cilium.io/ip: "192.168.1.24"
-          service.cilium.io/load-balancer-mode: snat
         externalTrafficPolicy: Cluster
       ingressClassResource:
         name: external
