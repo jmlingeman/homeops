@@ -8,8 +8,10 @@ spec:
   interval: 15m
   # The 1.22->1.27 upgrade (chart 10.6.0->12.7.0) blew through the default
   # 5m helm timeout (image pulls + postgresql-ha STS roll + DB auto-migration);
-  # give helm actions headroom for future major bumps.
-  timeout: 20m
+  # 20m still fell a hair short (pg STS re-roll of the post-rollback old image
+  # string + primary -0 swap landed on the deadline). 30m gives real headroom
+  # for future major bumps.
+  timeout: 30m
   chart:
     spec:
       chart: gitea
