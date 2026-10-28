@@ -120,12 +120,17 @@ spec:
         # proven in production for a year) using only binaries present in
         # the r20 image. The inline startup probe (psql SELECT 1) is kept
         # as-is; only liveness/readiness were script-based.
+        #
+        # The r20 image has no /etc/passwd entry for uid 1001, so psql can
+        # only run with an explicitly named user: source the chart's
+        # postgresql-env.sh (mounted by the new subchart and already used by
+        # the entrypoint) for POSTGRESQL_USERNAME/DATABASE/PASSWORD.
         customLivenessProbe:
           exec:
             command:
               - bash
               - -ec
-              - 'PGPASSWORD="$POSTGRESQL_PASSWORD" psql -w -U "$POSTGRESQL_USERNAME" -d "$POSTGRESQL_DATABASE" -h 127.0.0.1 -p 5432 -c "SELECT 1"'
+              - '. /opt/bitnami/scripts/postgresql-env.sh; PGPASSWORD="$POSTGRESQL_PASSWORD" psql -w -U "$POSTGRESQL_USERNAME" -d "$POSTGRESQL_DATABASE" -h 127.0.0.1 -p 5432 -c "SELECT 1"'
           initialDelaySeconds: 15
           periodSeconds: 10
           timeoutSeconds: 5
