@@ -9,7 +9,11 @@ spec:
   chart:
     spec:
       chart: gitea
-      version: 10.6.0
+      # 12.7.0 = Gitea 1.27.0. Image defaults moved to docker.gitea.com/gitea
+      # (rootless variant, same runtime as before); redis(-cluster) subcharts were
+      # replaced by valkey(-cluster) and are disabled below (level queue +
+      # memory session/cache instead, frees the old redis PVCs).
+      version: 12.7.0
       sourceRef:
         kind: HelmRepository
         name: gitea
@@ -35,16 +39,27 @@ spec:
       hosts:
         - host: &host "gitea.${SECRET_DOMAIN}"
           paths:
+            # Chart v12+ ignores per-path service (backend is always
+            # <release>-http); path "/" (Prefix) also routes the LFS
+            # endpoints (/<owner>/<repo>.info/lfs/...) to the same service.
             - path: /
               pathType: Prefix
-              service:
-                name: main
-                port: http
       tls:
         - hosts:
             - *host
     persistence:
       enabled: true
+
+    # Chart v11+ replaces the redis(-cluster) subcharts with valkey(-cluster)
+    # (both enabled by default). No KV backend is needed: Gitea falls back to
+    # the file-based "level" queue (stored under /data) plus in-memory
+    # session/cache. Disabling also releases the old 3x 8Gi redis-cluster
+    # PVCs on Longhorn (cluster is under disk pressure). Sessions are lost
+    # on gitea pod restart.
+    valkey:
+      enabled: false
+    valkey-cluster:
+      enabled: false
 
     postgresql:
       persistence:
@@ -54,6 +69,13 @@ spec:
       config:
         database:
           HOST: gitea-postgresql-ha-postgresql-0.gitea-postgresql-ha-postgresql-headless.home.svc.cluster.local:5432
+        # Git LFS server support: enable LFS and keep LFS objects on the
+        # persistent /data PVC (mounted at /data) so they survive pod
+        # restarts/rebuilds. Served over the same host via the "/" ingress
+        # path; clients just use the normal gitea URL.
+        lfs:
+          ENABLED: "true"
+          ROOT: /data/git/lfs
     postgresql-ha:
       postgresql:
         image:
