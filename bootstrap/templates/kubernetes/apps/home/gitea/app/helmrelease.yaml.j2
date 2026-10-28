@@ -108,6 +108,40 @@ spec:
         # (or manually: pg_promote() + repmgr.nodes/voting_term update on the new primary).
         repmgrReconnectAttempts: 40
         repmgrReconnectInterval: 30
+        # The postgresql-ha 16.3.x bundled with gitea chart >=12 ships
+        # script-based liveness/readiness probes that call
+        # repmgr_check_status from the new bitnami image layout. That helper
+        # does not exist in the legacy bitnamilegacy/postgresql-repmgr:
+        # 16.3.0-debian-12-r20 image we pin (no 16.x new-layout repmgr image
+        # exists; the chart's own default is PG17, which cannot run our PG16
+        # data dir in place), so the stock probes crash-loop the pods
+        # ("repmgr_check_status: command not found"). These custom probes
+        # replicate the inline probes of the old chart (postgresql-ha 14.2.x,
+        # proven in production for a year) using only binaries present in
+        # the r20 image. The inline startup probe (psql SELECT 1) is kept
+        # as-is; only liveness/readiness were script-based.
+        customLivenessProbe:
+          exec:
+            command:
+              - bash
+              - -ec
+              - 'PGPASSWORD="$POSTGRESQL_PASSWORD" psql -w -U "$POSTGRESQL_USERNAME" -d "$POSTGRESQL_DATABASE" -h 127.0.0.1 -p 5432 -c "SELECT 1"'
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 6
+        customReadinessProbe:
+          exec:
+            command:
+              - bash
+              - -ec
+              - 'exec pg_isready -U "postgres" -h 127.0.0.1 -p 5432 && { [ -f /opt/bitnami/postgresql/tmp/.initialized ] || [ -f /bitnami/postgresql/.initialized ]; }'
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 6
       pgpool:
         replicaCount: 0
 
