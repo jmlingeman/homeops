@@ -121,16 +121,19 @@ spec:
         # the r20 image. The inline startup probe (psql SELECT 1) is kept
         # as-is; only liveness/readiness were script-based.
         #
-        # The r20 image has no /etc/passwd entry for uid 1001, so psql can
-        # only run with an explicitly named user: source the chart's
-        # postgresql-env.sh (mounted by the new subchart and already used by
-        # the entrypoint) for POSTGRESQL_USERNAME/DATABASE/PASSWORD.
+        # The r20 image has no /etc/passwd entry for uid 1001, so a psql probe
+        # with an unset user falls back to the OS uid and fails with "local
+        # user with ID 1001 does not exist" (the chart dropped
+        # POSTGRESQL_USERNAME from the container env in 12.x). Both probes
+        # therefore use `pg_isready -U postgres` - a hard-coded superuser, no
+        # env vars, no password, no OS-user resolution - which is the standard
+        # postgres liveness/readiness check and is present in the r20 image.
         customLivenessProbe:
           exec:
             command:
               - bash
               - -ec
-              - '. /opt/bitnami/scripts/postgresql-env.sh; PGPASSWORD="$POSTGRESQL_PASSWORD" psql -w -U "$POSTGRESQL_USERNAME" -d "$POSTGRESQL_DATABASE" -h 127.0.0.1 -p 5432 -c "SELECT 1"'
+              - 'pg_isready -U postgres -h 127.0.0.1 -p 5432'
           initialDelaySeconds: 15
           periodSeconds: 10
           timeoutSeconds: 5
