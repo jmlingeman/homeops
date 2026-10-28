@@ -73,13 +73,16 @@ spec:
       config:
         database:
           HOST: gitea-postgresql-ha-postgresql-0.gitea-postgresql-ha-postgresql-headless.home.svc.cluster.local:5432
-        # Git LFS server support: enable LFS and keep LFS objects on the
-        # persistent /data PVC (mounted at /data) so they survive pod
-        # restarts/rebuilds. Served over the same host via the "/" ingress
-        # path; clients just use the normal gitea URL.
+        # Git LFS server support. Gitea 1.27 keys (checked in
+        # modules/setting/lfs.go): the switch is server.LFS_START_SERVER,
+        # the object store is lfs.PATH. Objects live on the persistent
+        # /data PVC so they survive pod restarts/rebuilds. Served over the
+        # same host via the "/" ingress path; clients just use the normal
+        # gitea URL with git-lfs installed.
+        server:
+          LFS_START_SERVER: "true"
         lfs:
-          ENABLED: "true"
-          ROOT: /data/git/lfs
+          PATH: /data/git/lfs
     postgresql-ha:
       postgresql:
         image:
