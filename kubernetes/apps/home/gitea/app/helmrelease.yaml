@@ -6,6 +6,10 @@ metadata:
   namespace: home
 spec:
   interval: 15m
+  # The 1.22->1.27 upgrade (chart 10.6.0->12.7.0) blew through the default
+  # 5m helm timeout (image pulls + postgresql-ha STS roll + DB auto-migration);
+  # give helm actions headroom for future major bumps.
+  timeout: 20m
   chart:
     spec:
       chart: gitea
