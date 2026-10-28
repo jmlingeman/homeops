@@ -56,6 +56,19 @@ spec:
     persistence:
       enabled: true
 
+    # Terminate-first rollout: the gitea PVC is a single-replica RWO volume.
+    # With the chart default (maxSurge 100%, maxUnavailable 0) the new pod
+    # starts before the old one stops; if the scheduler lands it on the same
+    # node as the old pod, the RWO volume can't detach and the new pod hangs
+    # in Init forever (deadlock, ~30m helm timeout). maxSurge 0 /
+    # maxUnavailable 1 kills the old pod first, freeing the PVC; costs a
+    # ~1-2min gitea downtime window during upgrades only.
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 0
+        maxUnavailable: 1
+
     # Chart v11+ replaces the redis(-cluster) subcharts with valkey(-cluster)
     # (both enabled by default). No KV backend is needed: Gitea falls back to
     # the file-based "level" queue (stored under /data) plus in-memory
