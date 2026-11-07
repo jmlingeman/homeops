@@ -89,7 +89,7 @@ spec:
     backend:
       image:
         repository: ghcr.io/spendable1569/piped-backend
-        tag: beta@sha256:a79fd7a9922cb40ab2d6454eb5a932d401ab4d813c87671d8ab4beb01fe4b623
+        tag: beta@sha256:0eabc67fbb79e3c3bc8580da9c9cb6e2fa93bd546e4b265b988817556533b81c
       config:
         database:
           connection_url: jdbc:postgresql://postgresql.database.svc.cluster.local:5432/piped
