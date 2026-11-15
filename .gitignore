@@ -23,4 +23,10 @@ wiki
 *.swp
 secrets.yml
 secrets.yaml
+# Local runtime credentials (values only); the dir + .env.example are tracked.
+secrets/.env
+secrets/*.key
 *.tmp
+# Python bytecode
+__pycache__/
+*.pyc

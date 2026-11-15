@@ -21,6 +21,8 @@ This repository is a GitOps-deployed **single-node k3s + Flux** home Kubernetes 
 | [91-runbook.md](91-runbook.md) | Day-2 ops: debugging, updates, nuke/rebuild, webhook, common gotchas |
 | [92-sop-add-app-from-template.md](92-sop-add-app-from-template.md) | **SOP: add a new app (persistent)** — copy + adapt an existing `bootstrap/templates/` app, then `task configure` |
 | [93-sop-image-to-app.md](93-sop-image-to-app.md) | **SOP: service in a git repo → Docker image → Docker Hub → this cluster** (Node/TS, Python examples; CI, pull-auth, updates) |
+| [94-sop-cluster-healthcheck.md](94-sop-cluster-healthcheck.md) | **Weekly read-only cluster health check & reports** — what it inspects (k3s, llm box, NAS, ninfer), how it runs (OMP trigger, Mon 02:00), credentials, and how findings become Gitea issues |
+| [95-sop-truenas-nas.md](95-sop-truenas-nas.md) | **Working the TrueNAS NAS** via the `truenas` MCP server (read-only tools, rules, recipes); guideline lives in the `jesse/truenas-mcp` repo |
 
 ## Repository map
 

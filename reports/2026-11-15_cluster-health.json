@@ -1,0 +1,1570 @@
+{
+  "generated": "2026-11-15T15:08:11",
+  "stamp": "2026-11-15",
+  "kubernetes": {
+    "nodes": [
+      {
+        "name": "kube-worker",
+        "ready": true,
+        "kubelet": "v1.29.0+k3s1"
+      },
+      {
+        "name": "kube-controller",
+        "ready": true,
+        "kubelet": "v1.29.0+k3s1"
+      }
+    ],
+    "helmreleases": [
+      {
+        "ns": "network",
+        "name": "cloudflared",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm install succeeded for release network/cloudflared.v1 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "storage",
+        "name": "openebs",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "3.10.0",
+        "chartname": "openebs",
+        "msg": "Helm install succeeded for release storage/openebs.v1 with chart openebs@3.10.0"
+      },
+      {
+        "ns": "wg-easy",
+        "name": "wg-easy",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "1.2.0",
+        "chartname": "wg-easy",
+        "msg": "Helm upgrade succeeded for release wg-easy/wg-easy.v2 with chart wg-easy@1.2.0"
+      },
+      {
+        "ns": "frontend",
+        "name": "priviblur",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm upgrade succeeded for release frontend/priviblur.v2 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "observability",
+        "name": "headlamp",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "0.45.0",
+        "chartname": "headlamp",
+        "msg": "Helm upgrade succeeded for release observability/headlamp.v2 with chart headlamp@0.45.0"
+      },
+      {
+        "ns": "tools",
+        "name": "reloader",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "1.0.62",
+        "chartname": "reloader",
+        "msg": "Helm install succeeded for release tools/reloader.v1 with chart reloader@1.0.62"
+      },
+      {
+        "ns": "frontend",
+        "name": "quetre",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm upgrade succeeded for release frontend/quetre.v10 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "observability",
+        "name": "kubernetes-dashboard",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "7.14.0",
+        "chartname": "charts/kubernetes-dashboard",
+        "msg": "Helm install succeeded for release observability/kubernetes-dashboard.v1 with chart kubernetes-dashboard@7.14.0"
+      },
+      {
+        "ns": "default",
+        "name": "homepage",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm install succeeded for release default/homepage.v1 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "network",
+        "name": "k8s-gateway",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "2.1.0",
+        "chartname": "k8s-gateway",
+        "msg": "Helm upgrade succeeded for release network/k8s-gateway.v13 with chart k8s-gateway@2.1.0"
+      },
+      {
+        "ns": "frontend",
+        "name": "librarian",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm install succeeded for release frontend/librarian.v1 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "observability",
+        "name": "kube-prometheus-stack",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "55.8.1",
+        "chartname": "kube-prometheus-stack",
+        "msg": "Helm install succeeded for release observability/kube-prometheus-stack.v1 with chart kube-prometheus-stack@55.8.1"
+      },
+      {
+        "ns": "frontend",
+        "name": "libremdb",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm upgrade succeeded for release frontend/libremdb.v3 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "media",
+        "name": "youtarr",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm upgrade succeeded for release media/youtarr.v31 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "network",
+        "name": "nginx-internal",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "4.7.1",
+        "chartname": "ingress-nginx",
+        "msg": "Helm upgrade succeeded for release network/nginx-internal.v5 with chart ingress-nginx@4.7.1"
+      },
+      {
+        "ns": "frontend",
+        "name": "libreddit",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm install succeeded for release frontend/libreddit.v1 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "home",
+        "name": "gitea",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "12.7.0",
+        "chartname": "gitea",
+        "msg": "Helm upgrade succeeded for release home/gitea.v38 with chart gitea@12.7.0"
+      },
+      {
+        "ns": "kube-system",
+        "name": "coredns",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "1.29.0",
+        "chartname": "coredns",
+        "msg": "Helm upgrade succeeded for release kube-system/coredns.v2 with chart coredns@1.29.0"
+      },
+      {
+        "ns": "media",
+        "name": "piped",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "8.1.23",
+        "chartname": "piped",
+        "msg": "Helm upgrade succeeded for release media/piped.v56 with chart piped@8.1.23"
+      },
+      {
+        "ns": "security",
+        "name": "vaultwarden",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm upgrade succeeded for release security/vaultwarden.v3 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "frontend",
+        "name": "libmedium",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm install succeeded for release frontend/libmedium.v1 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "media",
+        "name": "seerr",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm upgrade succeeded for release media/seerr.v2 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "home",
+        "name": "actual",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm upgrade succeeded for release home/actual.v3 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "media",
+        "name": "prowlarr",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm install succeeded for release media/prowlarr.v1 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "cert-manager",
+        "name": "cert-manager",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "v1.16.4",
+        "chartname": "cert-manager",
+        "msg": "Helm upgrade succeeded for release cert-manager/cert-manager.v3 with chart cert-manager@v1.16.4"
+      },
+      {
+        "ns": "home",
+        "name": "firefly-iii-importer-cba",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm install succeeded for release home/firefly-iii-importer-cba.v1 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "media",
+        "name": "radarr",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm upgrade succeeded for release media/radarr.v2 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "media",
+        "name": "sabnzbd",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm install succeeded for release media/sabnzbd.v1 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "network",
+        "name": "nginx-external",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "4.7.1",
+        "chartname": "ingress-nginx",
+        "msg": "Helm upgrade succeeded for release network/nginx-external.v5 with chart ingress-nginx@4.7.1"
+      },
+      {
+        "ns": "frontend",
+        "name": "rimgo",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm upgrade succeeded for release frontend/rimgo.v2 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "kube-system",
+        "name": "cilium",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "1.16.19",
+        "chartname": "cilium",
+        "msg": "Helm upgrade succeeded for release kube-system/cilium.v7 with chart cilium@1.16.19"
+      },
+      {
+        "ns": "home",
+        "name": "mealie",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm upgrade succeeded for release home/mealie.v3 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "frontend",
+        "name": "breezewiki",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm upgrade succeeded for release frontend/breezewiki.v5599 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "home",
+        "name": "joplin",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm install succeeded for release home/joplin.v1 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "network",
+        "name": "external-dns",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "1.14.1",
+        "chartname": "external-dns",
+        "msg": "Helm install succeeded for release network/external-dns.v1 with chart external-dns@1.14.1"
+      },
+      {
+        "ns": "media",
+        "name": "lidarr",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm upgrade succeeded for release media/lidarr.v91 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "home",
+        "name": "meshchatx",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm install succeeded for release home/meshchatx.v1 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "home",
+        "name": "firefly-iii",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm upgrade succeeded for release home/firefly-iii.v5 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "kube-system",
+        "name": "metrics-server",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "3.11.0",
+        "chartname": "metrics-server",
+        "msg": "Helm install succeeded for release kube-system/metrics-server.v1 with chart metrics-server@3.11.0"
+      },
+      {
+        "ns": "home",
+        "name": "homarr",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "5.7.0",
+        "chartname": "homarr",
+        "msg": "Helm install succeeded for release home/homarr.v1 with chart homarr@5.7.0"
+      },
+      {
+        "ns": "network",
+        "name": "echo-server",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm install succeeded for release network/echo-server.v1 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "home",
+        "name": "firefly-iii-importer",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm upgrade succeeded for release home/firefly-iii-importer.v3 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "observability",
+        "name": "grafana",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "7.0.19",
+        "chartname": "grafana",
+        "msg": "Helm install succeeded for release observability/grafana.v1 with chart grafana@7.0.19"
+      },
+      {
+        "ns": "tools",
+        "name": "descheduler",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "0.29.0",
+        "chartname": "descheduler",
+        "msg": "Helm install succeeded for release tools/descheduler.v1 with chart descheduler@0.29.0"
+      },
+      {
+        "ns": "home",
+        "name": "grocy",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "8.5.2",
+        "chartname": "grocy",
+        "msg": "Helm install succeeded for release home/grocy.v1 with chart grocy@8.5.2"
+      },
+      {
+        "ns": "storage",
+        "name": "longhorn",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "1.12.1",
+        "chartname": "longhorn",
+        "msg": "Helm upgrade succeeded for release storage/longhorn.v9 with chart longhorn@1.12.1"
+      },
+      {
+        "ns": "database",
+        "name": "postgresql",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "13.2.29",
+        "chartname": "postgresql",
+        "msg": "Helm upgrade succeeded for release database/postgresql.v4 with chart postgresql@13.2.29"
+      },
+      {
+        "ns": "media",
+        "name": "overseerr",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm upgrade succeeded for release media/overseerr.v3 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "media",
+        "name": "sonarr",
+        "ready": true,
+        "status": "UpgradeSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm upgrade succeeded for release media/sonarr.v7 with chart app-template@2.4.0"
+      },
+      {
+        "ns": "home",
+        "name": "affine",
+        "ready": true,
+        "status": "InstallSucceeded",
+        "chart": "2.4.0",
+        "chartname": "app-template",
+        "msg": "Helm install succeeded for release home/affine.v1 with chart app-template@2.4.0"
+      }
+    ],
+    "kustomizations": [
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-actual",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-prowlarr",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-rss-fulltext",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-overseerr",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-priviblur",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-wg-easy",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-piped",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-grocy",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-longhorn",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "echo-server",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-sonarr",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "nginx-certificates",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "k8s-gateway",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-mealie",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-libreddit",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-firefly-iii",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-lidarr",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cloudflared",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "kube-prometheus-stack",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-sabnzbd",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-homarr",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-joplin",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-rimgo",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "kine-wal",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "postgresql",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-breezewiki",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-youtarr",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-seerr",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-affine",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-quetre",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "kubernetes-dashboard",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "grafana",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "nginx-internal",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cert-manager-issuers",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-miniflux",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-firefly-iii-importer",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-headlamp",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-radarr",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cilium",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "nginx-external",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "descheduler",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "external-dns",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-libmedium",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "metrics-server",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "homepage",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "coredns",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "flux",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-vaultwarden",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-meshchatx",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cert-manager",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "flux-webhooks",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "reloader",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-librarian",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-gitea",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-libremdb",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "openebs",
+        "ready": true
+      },
+      {
+        "ns": "flux-system",
+        "name": "cluster-apps-longhorn-recurring-jobs",
+        "ready": false
+      }
+    ],
+    "pods": {
+      "total": 136,
+      "by_phase": {
+        "Succeeded": 15,
+        "Running": 118,
+        "Failed": 3
+      }
+    },
+    "charts": [
+      {
+        "ns": "network",
+        "name": "cloudflared",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "storage",
+        "name": "openebs",
+        "chart": "openebs",
+        "version": "3.10.0"
+      },
+      {
+        "ns": "wg-easy",
+        "name": "wg-easy",
+        "chart": "wg-easy",
+        "version": "1.2.0"
+      },
+      {
+        "ns": "frontend",
+        "name": "priviblur",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "observability",
+        "name": "headlamp",
+        "chart": "headlamp",
+        "version": "0.45.0"
+      },
+      {
+        "ns": "tools",
+        "name": "reloader",
+        "chart": "reloader",
+        "version": "1.0.62"
+      },
+      {
+        "ns": "frontend",
+        "name": "quetre",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "observability",
+        "name": "kubernetes-dashboard",
+        "chart": "charts/kubernetes-dashboard",
+        "version": "7.14.0"
+      },
+      {
+        "ns": "default",
+        "name": "homepage",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "network",
+        "name": "k8s-gateway",
+        "chart": "k8s-gateway",
+        "version": "2.1.0"
+      },
+      {
+        "ns": "frontend",
+        "name": "librarian",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "observability",
+        "name": "kube-prometheus-stack",
+        "chart": "kube-prometheus-stack",
+        "version": "55.8.1"
+      },
+      {
+        "ns": "frontend",
+        "name": "libremdb",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "media",
+        "name": "youtarr",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "network",
+        "name": "nginx-internal",
+        "chart": "ingress-nginx",
+        "version": "4.7.1"
+      },
+      {
+        "ns": "frontend",
+        "name": "libreddit",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "home",
+        "name": "gitea",
+        "chart": "gitea",
+        "version": "12.7.0"
+      },
+      {
+        "ns": "kube-system",
+        "name": "coredns",
+        "chart": "coredns",
+        "version": "1.29.0"
+      },
+      {
+        "ns": "media",
+        "name": "piped",
+        "chart": "piped",
+        "version": "8.1.23"
+      },
+      {
+        "ns": "security",
+        "name": "vaultwarden",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "frontend",
+        "name": "libmedium",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "media",
+        "name": "seerr",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "home",
+        "name": "actual",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "media",
+        "name": "prowlarr",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "cert-manager",
+        "name": "cert-manager",
+        "chart": "cert-manager",
+        "version": "v1.16.4"
+      },
+      {
+        "ns": "home",
+        "name": "firefly-iii-importer-cba",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "media",
+        "name": "radarr",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "media",
+        "name": "sabnzbd",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "network",
+        "name": "nginx-external",
+        "chart": "ingress-nginx",
+        "version": "4.7.1"
+      },
+      {
+        "ns": "frontend",
+        "name": "rimgo",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "kube-system",
+        "name": "cilium",
+        "chart": "cilium",
+        "version": "1.16.19"
+      },
+      {
+        "ns": "home",
+        "name": "mealie",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "frontend",
+        "name": "breezewiki",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "home",
+        "name": "joplin",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "network",
+        "name": "external-dns",
+        "chart": "external-dns",
+        "version": "1.14.1"
+      },
+      {
+        "ns": "media",
+        "name": "lidarr",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "home",
+        "name": "meshchatx",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "home",
+        "name": "firefly-iii",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "kube-system",
+        "name": "metrics-server",
+        "chart": "metrics-server",
+        "version": "3.11.0"
+      },
+      {
+        "ns": "home",
+        "name": "homarr",
+        "chart": "homarr",
+        "version": "5.7.0"
+      },
+      {
+        "ns": "network",
+        "name": "echo-server",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "home",
+        "name": "firefly-iii-importer",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "observability",
+        "name": "grafana",
+        "chart": "grafana",
+        "version": "7.0.19"
+      },
+      {
+        "ns": "tools",
+        "name": "descheduler",
+        "chart": "descheduler",
+        "version": "0.29.0"
+      },
+      {
+        "ns": "home",
+        "name": "grocy",
+        "chart": "grocy",
+        "version": "8.5.2"
+      },
+      {
+        "ns": "storage",
+        "name": "longhorn",
+        "chart": "longhorn",
+        "version": "1.12.1"
+      },
+      {
+        "ns": "database",
+        "name": "postgresql",
+        "chart": "postgresql",
+        "version": "13.2.29"
+      },
+      {
+        "ns": "media",
+        "name": "overseerr",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "media",
+        "name": "sonarr",
+        "chart": "app-template",
+        "version": "2.4.0"
+      },
+      {
+        "ns": "home",
+        "name": "affine",
+        "chart": "app-template",
+        "version": "2.4.0"
+      }
+    ]
+  },
+  "local": {
+    "hostname": "llm-server",
+    "filesystems": [
+      {
+        "dev": "/dev/sda2",
+        "mount": "/",
+        "size": 854696357888,
+        "used_pct": 80.0,
+        "avail": 176802586624
+      },
+      {
+        "dev": "efivarfs",
+        "mount": "/sys/firmware/efi/efivars",
+        "size": 262144,
+        "used_pct": 32.0,
+        "avail": 179200
+      },
+      {
+        "dev": "none",
+        "mount": "/run/credentials/systemd-journald.service",
+        "size": 1048576,
+        "used_pct": 0.0,
+        "avail": 1048576
+      },
+      {
+        "dev": "none",
+        "mount": "/run/credentials/systemd-resolved.service",
+        "size": 1048576,
+        "used_pct": 0.0,
+        "avail": 1048576
+      },
+      {
+        "dev": "/dev/sda1",
+        "mount": "/boot",
+        "size": 4286562304,
+        "used_pct": 18.0,
+        "avail": 3535876096
+      }
+    ],
+    "smart": [],
+    "gpu": {
+      "present": true,
+      "cards": [
+        {
+          "index": "0",
+          "name": "NVIDIA GeForce RTX 3090",
+          "temp_c": 89.53,
+          "power_w": 234.47,
+          "throttling": true,
+          "active_reasons_hex": "0x0000000000000020"
+        }
+      ]
+    },
+    "thermal_zones": []
+  },
+  "ninfer": {
+    "path": "/home/jesse/llm/ninfer-3090",
+    "present": true,
+    "branch": "master",
+    "ahead": 0,
+    "behind": 37,
+    "upstream_commits": [
+      "a90ad3c2 docs(release): correct the partial-copy note to match the synchronous scripts",
+      "7b11c2a0 docs: record the GPU results for the Basalt options in the Flash-Next plan",
+      "b4f5252f docs: release-process lessons from v0.18.0",
+      "2dc8bd90 docs: fill in v0.18.0 verification",
+      "a10f7524 fix(serve): split the serve option chain so MSVC can compile it (C1061)",
+      "42faedb8 docs: release notes for v0.18.0",
+      "10ff94f8 chore: bump VERSION to 0.18.0-rtx3090",
+      "85b051e7 fix(frontend): correct the drop test and the extent memo wording",
+      "2502056b fix(frontend): probe media for the Vision plan under the preparation gate",
+      "45cdd7d2 perf(frontend): probe each image once when planning the Vision budget",
+      "8dfb7d70 fix(program): dispatch the batched MTP fold through fold_stream_ when the whole round continues",
+      "85aa40bb fix(frontend): measure the omission note with the tokenizer",
+      "b6c91055 fix(frontend): address review of the Vision budget plan",
+      "ad46a2e3 fix(program): size the expert route log for batched rows, fix test batchability gate",
+      "eb4e20a4 fix(program): download batched routes, clear deferred_, count released rows, size shared-expert scratch",
+      "0eb4d8a2 feat(serve): log how many images were shrunk or dropped to fit the Vision budget",
+      "b117755b feat(frontend): shrink oldest images instead of rejecting over-budget requests",
+      "a6e2d6b3 fix(program): reject partial nonterminal commits on the batched rows path",
+      "33c402d3 fix(program): skip the rows-verify scratch region when the flag is off",
+      "0eb2e660 fix(program): size the rows-verify workspace and CPU-miss channel for B*W, surface relaxed-kept stats",
+      "74d06fe7 fix(program): address codepulse review findings on the rows-verify path",
+      "35a3b221 fix(program): size the rows-verify logits scratch for B*W, not max(width,lanes)",
+      "78bd76f7 docs(maintainer): record a no-GPU re-derivation of bug 7's addressing math",
+      "2a7b5806 fix(program): catch up each row's drafter after a rows-verify commit; gate the feature off by default",
+      "0618d12b feat(program): wire batched multi-row MTP verification into decode()/commit()",
+      "c53dec6f docs(maintainer): record what's landed, the IO-layout finding, and the no-graph-capture decision",
+      "634f01f2 feat(program): add rows_verify_view, building ForwardRowsVerify from the new region",
+      "2ee8e2b7 feat(program): plan the N-row batched verify's own memory region",
+      "12f6e53a feat(forward): add a batched multi-row MTP verification path",
+      "ea9446e0 docs(maintainer): pin down the conv-snapshot staging gap and the memory/graph plan",
+      "db006b4f docs(maintainer): scope the batched-MTP design to N rows, not 2",
+      "58d2c542 docs(maintainer): design for batched MTP verification across lanes"
+    ]
+  },
+  "nas": {
+    "url": "https://nas.local",
+    "reachable": true,
+    "version": "TrueNAS-SCALE-23.10.1",
+    "hostname": "nas",
+    "uptime": "106 days, 6:07:49.735033",
+    "loadavg": [
+      3.45068359375,
+      3.6181640625,
+      3.15380859375
+    ],
+    "cores": 4,
+    "pools": [
+      {
+        "name": "pool1",
+        "status": "DEGRADED",
+        "size": 71983651880960,
+        "allocated": 69032975450112,
+        "free": 2950676430848,
+        "used_pct": 95.9,
+        "status_detail": "One or more devices has experienced an error resulting in data corruption. Applications may be affected.",
+        "warning": false
+      },
+      {
+        "name": "pool2",
+        "status": "ONLINE",
+        "size": 59992103190528,
+        "allocated": 26514178818048,
+        "free": 33477924372480,
+        "used_pct": 44.2,
+        "status_detail": null,
+        "warning": false
+      }
+    ],
+    "datasets": [
+      "pool1",
+      "pool1/backup",
+      "pool1/backup",
+      "pool1/downloads",
+      "pool1/downloads",
+      "pool1/ix-applications",
+      "pool1/ix-applications",
+      "pool1/tv",
+      "pool1/tv",
+      "pool1/users",
+      "pool1/users",
+      "pool1/vaultwarden",
+      "pool1/vaultwarden",
+      "pool2",
+      "pool2/audiobooks",
+      "pool2/audiobooks",
+      "pool2/movies",
+      "pool2/movies",
+      "pool2/music",
+      "pool2/music",
+      "pool2/temp",
+      "pool2/temp",
+      "pool2/tv",
+      "pool2/tv"
+    ],
+    "dataset_count": 24,
+    "alerts": [
+      {
+        "klass": "ZpoolCapacityCritical",
+        "source": "ZpoolCapacity",
+        "args": {
+          "volume": "pool1",
+          "capacity": 95
+        },
+        "node": "Controller A",
+        "created": 1774306206000
+      },
+      {
+        "klass": "VolumeStatus",
+        "source": "VolumeStatus",
+        "args": {
+          "volume": "pool1",
+          "state": "DEGRADED",
+          "status": "One or more devices has experienced an error resulting in data corruption. Applications may be affected.",
+          "devices": "<br>The following devices are not healthy:<ul><li>Disk QEMU_HARDDISK drive-scsi10 is FAULTED</li></ul>"
+        },
+        "node": "Controller A",
+        "created": 1793350643000
+      },
+      {
+        "klass": "SMBPath",
+        "source": "SMBPath",
+        "args": {
+          "err": "pool1: SMB shares containing the apps dataset are not permitted"
+        },
+        "node": "Controller A",
+        "created": 1788066048000
+      },
+      {
+        "klass": "ScrubFinished",
+        "source": "",
+        "args": "pool1",
+        "node": "Controller A",
+        "created": 1793654675000
+      },
+      {
+        "klass": "ScrubFinished",
+        "source": "",
+        "args": "boot-pool",
+        "node": "Controller A",
+        "created": 1794645936000
+      },
+      {
+        "klass": "ScrubFinished",
+        "source": "",
+        "args": "pool2",
+        "node": "Controller A",
+        "created": 1794753280000
+      },
+      {
+        "klass": "ScrubStarted",
+        "source": "",
+        "args": "pool2",
+        "node": "Controller A",
+        "created": 1794718802000
+      }
+    ],
+    "disks": [
+      {
+        "dev": "sda",
+        "model": "QEMU_HARDDISK",
+        "size": 68719476736,
+        "health": null,
+        "smart_ok": null
+      },
+      {
+        "dev": "sdf",
+        "model": "QEMU_HARDDISK",
+        "size": 18000207937536,
+        "health": null,
+        "smart_ok": null
+      },
+      {
+        "dev": "sdb",
+        "model": "QEMU_HARDDISK",
+        "size": 18000207937536,
+        "health": null,
+        "smart_ok": null
+      },
+      {
+        "dev": "sdc",
+        "model": "QEMU_HARDDISK",
+        "size": 18000207937536,
+        "health": null,
+        "smart_ok": null
+      },
+      {
+        "dev": "sdd",
+        "model": "QEMU_HARDDISK",
+        "size": 12000138625024,
+        "health": null,
+        "smart_ok": null
+      },
+      {
+        "dev": "sde",
+        "model": "QEMU_HARDDISK",
+        "size": 12000138625024,
+        "health": null,
+        "smart_ok": null
+      },
+      {
+        "dev": "sdg",
+        "model": "QEMU_HARDDISK",
+        "size": 14000519643136,
+        "health": null,
+        "smart_ok": null
+      },
+      {
+        "dev": "sdh",
+        "model": "QEMU_HARDDISK",
+        "size": 14000519643136,
+        "health": null,
+        "smart_ok": null
+      },
+      {
+        "dev": "sdi",
+        "model": "QEMU_HARDDISK",
+        "size": 14000519643136,
+        "health": null,
+        "smart_ok": null
+      },
+      {
+        "dev": "sdj",
+        "model": "QEMU_HARDDISK",
+        "size": 18000207937536,
+        "health": null,
+        "smart_ok": null
+      }
+    ]
+  },
+  "findings": [
+    {
+      "key": "flux-kustomization:flux-system/cluster-apps-longhorn-recurring-jobs",
+      "severity": "warn",
+      "title": "Kustomization flux-system/cluster-apps-longhorn-recurring-jobs is not ready",
+      "detail": "RecurringJob/storage/backup-daily namespace not specified: the server could not find the requested resource (patch recurringjobs.longhorn.io backup-daily)\n",
+      "source": "kubernetes",
+      "actionable": true
+    },
+    {
+      "key": "k8s-pod-restarts:observability/kube-prometheus-stack-prometheus-node-exporter-bztdn",
+      "severity": "info",
+      "title": "Pod observability/kube-prometheus-stack-prometheus-node-exporter-bztdn has 19 cumulative restarts",
+      "detail": "cumulative count (not a current fault); current waiting/crash-loop states are reported separately",
+      "source": "kubernetes",
+      "actionable": false
+    },
+    {
+      "key": "k8s-pod-restarts:tools/descheduler-5d46ffdb6-6pjxx",
+      "severity": "info",
+      "title": "Pod tools/descheduler-5d46ffdb6-6pjxx has 262 cumulative restarts",
+      "detail": "cumulative count (not a current fault); current waiting/crash-loop states are reported separately",
+      "source": "kubernetes",
+      "actionable": false
+    },
+    {
+      "key": "k8s-pod-restarts:cert-manager/cert-manager-cainjector-7677cbf98f-gpnqp",
+      "severity": "info",
+      "title": "Pod cert-manager/cert-manager-cainjector-7677cbf98f-gpnqp has 286 cumulative restarts",
+      "detail": "cumulative count (not a current fault); current waiting/crash-loop states are reported separately",
+      "source": "kubernetes",
+      "actionable": false
+    },
+    {
+      "key": "k8s-pod-restarts:storage/openebs-ndm-5vc9g",
+      "severity": "info",
+      "title": "Pod storage/openebs-ndm-5vc9g has 28 cumulative restarts",
+      "detail": "cumulative count (not a current fault); current waiting/crash-loop states are reported separately",
+      "source": "kubernetes",
+      "actionable": false
+    },
+    {
+      "key": "k8s-pod-restarts:kube-system/kube-vip-kube-controller",
+      "severity": "info",
+      "title": "Pod kube-system/kube-vip-kube-controller has 88 cumulative restarts",
+      "detail": "cumulative count (not a current fault); current waiting/crash-loop states are reported separately",
+      "source": "kubernetes",
+      "actionable": false
+    },
+    {
+      "key": "k8s-pod:kube-system/npcli-m:failed",
+      "severity": "crit",
+      "title": "Pod kube-system/npcli-m is Failed",
+      "detail": "",
+      "source": "kubernetes",
+      "actionable": true
+    },
+    {
+      "key": "k8s-pod:kube-system/coredns-54b4c7dc4-ffwgr:failed",
+      "severity": "crit",
+      "title": "Pod kube-system/coredns-54b4c7dc4-ffwgr is Failed",
+      "detail": "",
+      "source": "kubernetes",
+      "actionable": true
+    },
+    {
+      "key": "k8s-pod:kube-system/coredns-54b4c7dc4-2hmfb:failed",
+      "severity": "crit",
+      "title": "Pod kube-system/coredns-54b4c7dc4-2hmfb is Failed",
+      "detail": "",
+      "source": "kubernetes",
+      "actionable": true
+    },
+    {
+      "key": "k8s-pod-restarts:frontend/librarian-6c5d44f65d-km4mr",
+      "severity": "info",
+      "title": "Pod frontend/librarian-6c5d44f65d-km4mr has 273 cumulative restarts",
+      "detail": "cumulative count (not a current fault); current waiting/crash-loop states are reported separately",
+      "source": "kubernetes",
+      "actionable": false
+    },
+    {
+      "key": "k8s-pod-restarts:home/joplin-5cf65888ff-ljp9d",
+      "severity": "info",
+      "title": "Pod home/joplin-5cf65888ff-ljp9d has 241 cumulative restarts",
+      "detail": "cumulative count (not a current fault); current waiting/crash-loop states are reported separately",
+      "source": "kubernetes",
+      "actionable": false
+    },
+    {
+      "key": "k8s-pod-restarts:media/youtarr-b68c6cf79-q2nks",
+      "severity": "info",
+      "title": "Pod media/youtarr-b68c6cf79-q2nks has 402 cumulative restarts",
+      "detail": "cumulative count (not a current fault); current waiting/crash-loop states are reported separately",
+      "source": "kubernetes",
+      "actionable": false
+    },
+    {
+      "key": "k8s-pod-restarts:kube-system/hubble-relay-6dbfb5c76b-f42df",
+      "severity": "info",
+      "title": "Pod kube-system/hubble-relay-6dbfb5c76b-f42df has 336 cumulative restarts",
+      "detail": "cumulative count (not a current fault); current waiting/crash-loop states are reported separately",
+      "source": "kubernetes",
+      "actionable": false
+    },
+    {
+      "key": "k8s-pod-restarts:network/cloudflared-58b85b5d68-8dv8w",
+      "severity": "info",
+      "title": "Pod network/cloudflared-58b85b5d68-8dv8w has 260 cumulative restarts",
+      "detail": "cumulative count (not a current fault); current waiting/crash-loop states are reported separately",
+      "source": "kubernetes",
+      "actionable": false
+    },
+    {
+      "key": "k8s-pod-restarts:network/cloudflared-58b85b5d68-rvg79",
+      "severity": "info",
+      "title": "Pod network/cloudflared-58b85b5d68-rvg79 has 648 cumulative restarts",
+      "detail": "cumulative count (not a current fault); current waiting/crash-loop states are reported separately",
+      "source": "kubernetes",
+      "actionable": false
+    },
+    {
+      "key": "k8s-pod-restarts:kube-system/hostcrictl-kube-controller",
+      "severity": "info",
+      "title": "Pod kube-system/hostcrictl-kube-controller has 66 cumulative restarts",
+      "detail": "cumulative count (not a current fault); current waiting/crash-loop states are reported separately",
+      "source": "kubernetes",
+      "actionable": false
+    },
+    {
+      "key": "k8s-pod-restarts:kube-system/hostcrictl-kube-worker",
+      "severity": "info",
+      "title": "Pod kube-system/hostcrictl-kube-worker has 67 cumulative restarts",
+      "detail": "cumulative count (not a current fault); current waiting/crash-loop states are reported separately",
+      "source": "kubernetes",
+      "actionable": false
+    },
+    {
+      "key": "disk:llm-server:/dev/sda2",
+      "severity": "warn",
+      "title": "/ at 80.0% full (/dev/sda2)",
+      "detail": "631G used / 796G (80.0%); 165G free",
+      "source": "local-disk",
+      "actionable": true
+    },
+    {
+      "key": "smart:llm-server:noaccess",
+      "severity": "warn",
+      "title": "Cannot read SMART on /dev/sda1 (permission denied)",
+      "detail": "run smartctl as a user with device access, or add the service user to the appropriate group",
+      "source": "local-smart",
+      "actionable": true
+    },
+    {
+      "key": "gpu:llm-server:0:hot",
+      "severity": "warn",
+      "title": "GPU 0 NVIDIA GeForce RTX 3090 at 89.53\u00b0C (warm)",
+      "detail": "power 234.47W; throttle=True",
+      "source": "local-gpu",
+      "actionable": true
+    },
+    {
+      "key": "ninfer:updates-available",
+      "severity": "warn",
+      "title": "ninfer model repo has 37 new upstream commit(s)",
+      "detail": "37 upstream commit(s) since local HEAD on master\n  a90ad3c2 docs(release): correct the partial-copy note to match the synchronous scripts\n  7b11c2a0 docs: record the GPU results for the Basalt options in the Flash-Next plan\n  b4f5252f docs: release-process lessons from v0.18.0\n  2dc8bd90 docs: fill in v0.18.0 verification\n  a10f7524 fix(serve): split the serve option chain so MSVC can compile it (C1061)\n  42faedb8 docs: release notes for v0.18.0\n  10ff94f8 chore: bump VERSION to 0.18.0-rtx3090\n  85b051e7 fix(frontend): correct the drop test and the extent memo wording\n  2502056b fix(frontend): probe media for the Vision plan under the preparation gate\n  45cdd7d2 perf(frontend): probe each image once when planning the Vision budget\n  8dfb7d70 fix(program): dispatch the batched MTP fold through fold_stream_ when the whole round continues\n  85aa40bb fix(frontend): measure the omission note with the tokenizer\n  b6c91055 fix(frontend): address review of the Vision budget plan\n  ad46a2e3 fix(program): size the expert route log for batched rows, fix test batchability gate\n  eb4e20a4 fix(program): download batched routes, clear deferred_, count released rows, size shared-expert scratch  \u2026 +17 more",
+      "source": "ninfer",
+      "actionable": true
+    },
+    {
+      "key": "nas-pool:pool1:degraded",
+      "severity": "warn",
+      "title": "NAS pool pool1 is DEGRADED",
+      "detail": "size=67040G allocated=64292G (95.9%); One or more devices has experienced an error resulting in data corruption. Applications may be affected.",
+      "source": "nas",
+      "actionable": true
+    },
+    {
+      "key": "nas-alert:zpoolcapacitycritical",
+      "severity": "crit",
+      "title": "NAS active alert: ZpoolCapacity / ZpoolCapacityCritical",
+      "detail": "node=Controller A volume=pool1, capacity=95",
+      "source": "nas",
+      "actionable": true
+    },
+    {
+      "key": "nas-alert:volumestatus",
+      "severity": "warn",
+      "title": "NAS active alert: VolumeStatus / VolumeStatus",
+      "detail": "node=Controller A volume=pool1, state=DEGRADED, status=One or more devices has experienced an error resulting in data corruption. Applications may be affected., devices=<br>The following devices are not healthy:<ul><li>Disk QEMU_HARDDISK drive-scsi10 is FAULTED</li></ul>",
+      "source": "nas",
+      "actionable": true
+    },
+    {
+      "key": "nas-alert:smbpath",
+      "severity": "warn",
+      "title": "NAS active alert: SMBPath / SMBPath",
+      "detail": "node=Controller A err=pool1: SMB shares containing the apps dataset are not permitted",
+      "source": "nas",
+      "actionable": true
+    }
+  ]
+}
