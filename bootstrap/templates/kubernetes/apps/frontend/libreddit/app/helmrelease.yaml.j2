@@ -31,10 +31,13 @@ spec:
           imagePullPolicy: Always
           main:
             image:
-              repository: "ghcr.io/nachtalb/redlib@sha256:70caaaea9ab568d4371b0ffaccc1c468d04164510ec6a8a09f9a50744485ca0d"
-              # pinned: `latest` silently changed under us (k3s even kept
-              # serving the cached digest after restarts). Bump the digest
-              # deliberately to take a new build of the fork.
+              repository: ghcr.io/nachtalb/redlib
+              # NOTE: app-template 2.4.0 renders only repository:tag and
+              # rejects a missing tag ("No image tag specified"), so digest
+              # pinning is impossible on this chart version. To take a new
+              # fork build: bump the chart (digest support) or force a
+              # re-pull (node image-cache clear + pod restart).
+              tag: latest
               imagePullPolicy: Always
             env:
               LIBREDDIT_DEFAULT_SHOW_NSFW: true
