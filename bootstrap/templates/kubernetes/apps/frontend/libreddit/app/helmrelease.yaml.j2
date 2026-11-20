@@ -36,6 +36,15 @@ spec:
               imagePullPolicy: Always
             env:
               LIBREDDIT_DEFAULT_SHOW_NSFW: true
+              # reddit now 403s the .json endpoints redlib scrapes for
+              # anonymous sessions ("only serves this page to logged-in
+              # sessions"); the fork's cookied_json backend presents this
+              # cookie upstream. Rotated via SOPS (see 04-secrets-sops.md).
+              REDLIB_REDDIT_COOKIE:
+                valueFrom:
+                  secretKeyRef:
+                    name: libreddit-secret
+                    key: REDLIB_REDDIT_COOKIE
             probes:
               liveness: &probes
                 enabled: true
