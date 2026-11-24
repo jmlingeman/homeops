@@ -5,7 +5,7 @@ Cluster networking and DNS plumbing.
 ## cilium
 
 CNI + service-mesh-free networking layer (chart `cilium` 1.17.18, repo `cilium`).
-Replaces kube-proxy (MAGLEV L4 LB, global forwarding mode `datamodel` via
+Replaces kube-proxy (MAGLEV L4 LB, global forwarding mode `snat` via
 `bootstrap_cilium_loadbalancer_mode`; per-service `service.cilium.io/forwarding-mode: snat`
 on the WireGuard VIP services — see `wireguard-offsite-vpn.md`), provides **L2
 announcements** (so the static VIPs 192.168.1.22–.26 work as LoadBalancers) and
