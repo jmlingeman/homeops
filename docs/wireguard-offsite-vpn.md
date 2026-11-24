@@ -245,16 +245,16 @@ causes, found in order:
   `bpf-lb-mode`, no per-service mode), so the global knob was the only fix available at the time.
   **Superseded 2026-11-24:** that global SNAT on Cilium 1.16.19 later blackholed *all* external-origin
   TCP to every BPF-LB frontend (see "The November 2026 incident"). Final state: Cilium 1.17.18,
-  global `snat` + `bpf.lbModeAnnotation: true` (+ `dsrDispatch: ipip`), with explicit per-service
-  `service.cilium.io/forwarding-mode: snat` on .24/.25/.26.
+  global `dsr` restored + per-service `service.cilium.io/forwarding-mode: snat` on .24/.25/.26
+  (global `snat` reproduces the blackhole on 1.17.18 as well in this topology).
 - **Verified post-fix** (pod-netns self-test, src `10.42.1.75`, real SNI/vhosts): `gitea` via `.24` →
   200, `sonarr` via `.25` → 302, `home` via `.25` → 200. On-LAN unaffected (gitea 200 ~8 ms,
   sonarr 302 ~7 ms).
 - **Tradeoff (as of October):** global SNAT added per-connection LB state and dropped DSR zero-copy
   for *all* BPF-LB services — negligible at home scale. That global-SNAT era ended 2026-11-24
   (see below); `01-architecture.md` / `03-configuration.md` / `06-networking.md` / `apps/kube-system.md`
-  now record the final state (global `snat` + per-service annotation, "do not set
-  `dsr` or `datamodel`") so a future change can't silently flip it without review.
+  now record the final state (global `dsr` + per-service `snat` annotations, "do not set the global
+  mode back to `snat`") so a future change can't silently flip it without review.
 
 ### Cause 3 (client) — Safari's stale private-IP DNS answer
 - After (1)+(2) the tunnel and server were fully working — proven by the pod-netns self-test **and**
@@ -377,11 +377,15 @@ bootstrap copy `custom-cilium-helmchart`; k8s 1.29 is e2e-tested on 1.17.x), plu
 - `loadBalancer.dsrDispatch: ipip` — mandatory on 1.17 with `lbModeAnnotation`: the
   agent refuses to start otherwise (`daemon/cmd/kube_proxy_replacement.go` asserts
   `--bpf-lb-dsr-dispatch=ipip`; the chart leaves it unset → "opt/geneve" → crashloop).
-  Inert for us since nodePortMode stays `snat`.
-- global `loadBalancer.mode` stays **`snat`** — 1.17.18 accepts it without the 1.16.19
-  external-TCP blackhole (verified post-upgrade). Note: `datamodel` is **not** a valid mode
-  value on 1.17 (a 1.18+ value; the agent aborts at startup with "Invalid value for
-  --node-port-mode: datamodel" — caught live during the 2026-11-24 rollout);
+  With global `dsr` the IPIP dispatch is also the real cross-node DSR dispatch method.
+- global `loadBalancer.mode` **back to `dsr`** — the hoped-for "1.17.18 accepts global `snat`"
+  premise proved FALSE: under our topology (native routing + hostLegacyRouting) global `snat`
+  reproduces the blackhole on 1.17.18 exactly (verified 2026-11-24: probe SYNs reach the node
+  NIC, are dropped in the from-netdev BPF path with zero `cilium monitor` events, while
+  in-cluster-origin traffic to the same NodePorts works fine). `datamodel` was tried first and
+  is not a valid 1.17 mode value at all (a 1.18+ value; the agent aborts at startup with
+  "Invalid value for --node-port-mode: datamodel"). Global `dsr` restores the pre-October
+  external-origin TCP behavior for all NodePorts/VIPs;
 - per-service annotation **`service.cilium.io/forwarding-mode: snat`** on exactly the
   services carrying the masqueraded phone→VIP flow that needs SNAT return paths:
   `nginx-external-controller` (.24), `nginx-internal-controller` (.25), `wg-easy-ui-lb` (.26);

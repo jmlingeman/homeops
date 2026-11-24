@@ -24,15 +24,16 @@ VIPs (Cilium L2 / kube-vip style static IPs, see `bootstrap/vars/config.yaml`):
 | 192.168.1.211 | External Jellyfin/Plex VM (service down as of 2026-10-26; in-cluster proxy removed) |
 
 CIDRs: node `192.168.1.0/24`, pod `10.42.0.0/16`, service `10.43.0.0/16` (CoreDNS at 10.43.0.10).
-Cilium LB global forwarding mode: `snat` (Cilium 1.17.18, 2026-11-24) +
-`bpf.lbModeAnnotation: true` + `dsrDispatch: ipip` (mandatory with the
-annotation flag on 1.17). History: `dsr` broke the WireGuard phone→VIP return
-path (2026-10-27); global `snat` on Cilium 1.16.19 blackholed **all
-external-origin TCP** to every BPF-LB frontend (2026-11); the 1.17.18 upgrade
-accepts global `snat` again. Note: `datamodel` is a 1.18+ value — the 1.17
-agent rejects it at startup. The phone→VIP flows (.24/.25/.26) carry the
-explicit per-service annotation `service.cilium.io/forwarding-mode: snat`.
-Details in `wireguard-offsite-vpn.md`.
+Cilium LB global forwarding mode: `dsr` (Cilium 1.17.18 since 2026-11-24; the
+pre-October mode — external-origin TCP to NodePorts/VIPs works under it, off-site
+reachability via L2 announcements) + `bpf.lbModeAnnotation: true` +
+`dsrDispatch: ipip` (mandatory with the annotation flag on 1.17). History: `dsr`
+broke only the WireGuard phone→VIP return path (Oct 2026); the temporary global
+`snat` fix blackholed **all external-origin TCP** to every BPF-LB frontend —
+reproduced on both Cilium 1.16.19 and 1.17.18 under our topology (native routing
++ hostLegacyRouting), so the global mode went back to `dsr` while the phone→VIP
+flows (.24/.25/.26) keep SNAT via the explicit per-service annotation
+`service.cilium.io/forwarding-mode: snat`. Details in `wireguard-offsite-vpn.md`.
 
 ## Control plane: Flux
 
