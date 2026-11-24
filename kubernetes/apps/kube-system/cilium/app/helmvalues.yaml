@@ -90,7 +90,7 @@ data:
       # --bpf-lb-dsr-dispatch=ipip. Inert for us (nodePortMode=snat); IPIP
       # dispatch only matters for DSR services.
       dsrDispatch: ipip
-      mode: datamodel
+      mode: snat
     localRedirectPolicy: true
     operator:
       replicas: 1
