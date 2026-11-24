@@ -127,10 +127,15 @@ from the LAN via split-DNS, **not** from the internet.
 
 ## Internal cluster networking
 
-- **Cilium** is the CNI and replaces kube-proxy (SNAT load balancing,
-  `bootstrap_cilium_loadbalancer_mode: snat`; switched from `dsr` on 2026-10-27
-  because DSR's direct return path failed for WireGuard traffic masqueraded
-  through the wg-easy pod netns).
+- **Cilium** is the CNI and replaces kube-proxy (MAGLEV L4 LB, global
+  forwarding mode `datamodel` via `bootstrap_cilium_loadbalancer_mode` since
+  2026-11-24). History: `dsr` broke the return path for WireGuard traffic
+  masqueraded through the wg-easy pod netns (fixed 2026-10-27 by switching to
+  global `snat`, which on Cilium 1.16.19 then blackholed all external-origin
+  TCP to every BPF-LB frontend). Final state (Cilium ≥ 1.17,
+  `bpf.lbModeAnnotation: true`): global `datamodel` + per-service
+  `service.cilium.io/forwarding-mode: snat` on the three WireGuard VIP
+  services (.24/.25/.26). See `wireguard-offsite-vpn.md`.
 - **Static IPs** (LoadBalancers) via `io.cilium/lb-ipam-ips` annotations +
   **L2 announcements** (`CiliumL2AnnouncementPolicy` + `CiliumLoadBalancerIPPool`
   over the node CIDR, in `kube-system/cilium/app/cilium-l2.yaml`) — this is how

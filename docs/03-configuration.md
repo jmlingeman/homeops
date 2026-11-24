@@ -29,7 +29,7 @@ Template-provided keys (current values for this cluster):
 | `bootstrap_k8s_gateway_addr` | `192.168.1.23` | k8s-gateway LB IP |
 | `bootstrap_external_ingress_addr` | `192.168.1.24` | nginx-external LB IP |
 | `bootstrap_internal_ingress_addr` | `192.168.1.25` | nginx-internal LB IP |
-| `bootstrap_cilium_loadbalancer_mode` | `snat` | `dsr` (default) or `snat`; set to `snat` on 2026-10-27 to fix WireGuard clients reaching the .24/.25 LB VIPs (Cilium 1.16 has no per-service mode override) |
+| `bootstrap_cilium_loadbalancer_mode` | `datamodel` | Global Cilium LB forwarding mode (`datamodel`, `snat`, or `dsr`). Was `snat` 2026-10-27→11-24 (WireGuard phone→VIP fix on Cilium 1.16, which has no per-service mode); reverted to `datamodel` 2026-11-24 because global `snat` on Cilium 1.16.19 blackholed all external-origin TCP to every NodePort/LB-VIP frontend. The phone→VIP flows now use per-service `service.cilium.io/forwarding-mode: snat` (Cilium ≥ 1.17). **Do not set this back to `snat`** — see `wireguard-offsite-vpn.md` |
 | `bootstrap_ipv6_enabled` | `false` | (advanced) |
 | `bootstrap_cluster_cidr` / `bootstrap_service_cidr` | `10.42.0.0/16` / `10.43.0.0/16` | → `cluster-settings.{CLUSTER,SERVICE}_CIDR` |
 | `bootstrap_local_storage_path` | `/var/openebs/local` | openebs-hostpath mount |

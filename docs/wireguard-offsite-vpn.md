@@ -1,8 +1,9 @@
 # Off-site WireGuard VPN (wg-easy) — how it works and what was fixed
 
 Status: **working** (verified off-site from a phone on cellular — September 2026 client fixes;
-October 2026 off-site `*.jesseisageek.com` DNS + load-balancer + Safari fixes, see
-"The October 2026 incident" below).
+October 2026 off-site `*.jesseisageek.com` DNS + load-balancer + Safari fixes;
+November 2026 full-tunnel resolution + Cilium 1.17.18 per-service-SNAT fix for the
+external-TCP blackhole, see "The November 2026 incident" below).
 
 Clients connect from anywhere to the home k3s cluster's WireGuard server
 (`wg-easy`, v15.4.0, Node-based image) and can reach the home LAN
@@ -241,14 +242,18 @@ causes, found in order:
   VIP, the backend replies to the VIP, and the LB un-SNATs + forwards the reply through the CNI back
   to the wg-easy pod → phone. A per-Service `service.cilium.io/load-balancer-mode: snat` annotation
   was tried first but is **inert on Cilium 1.16** (that version exposes only the global
-  `bpf-lb-mode`, no per-service mode), so the global knob is the effective fix.
+  `bpf-lb-mode`, no per-service mode), so the global knob was the only fix available at the time.
+  **Superseded 2026-11-24:** that global SNAT on Cilium 1.16.19 later blackholed *all* external-origin
+  TCP to every BPF-LB frontend (see "The November 2026 incident"). Final state: Cilium 1.17.18,
+  global `datamodel`, per-service `service.cilium.io/forwarding-mode: snat` on .24/.25/.26.
 - **Verified post-fix** (pod-netns self-test, src `10.42.1.75`, real SNI/vhosts): `gitea` via `.24` →
   200, `sonarr` via `.25` → 302, `home` via `.25` → 200. On-LAN unaffected (gitea 200 ~8 ms,
   sonarr 302 ~7 ms).
-- **Tradeoff:** SNAT adds per-connection LB state and drops DSR zero-copy for *all* BPF-LB services —
-  negligible at home scale. `06-networking.md` / `apps/kube-system.md` now record `snat` as the mode
-  (and the 1.16 no-per-service-mode caveat) so a future Cilium upgrade can't silently flip it back
-  without review.
+- **Tradeoff (as of October):** global SNAT added per-connection LB state and dropped DSR zero-copy
+  for *all* BPF-LB services — negligible at home scale. That global-SNAT era ended 2026-11-24
+  (see below); `01-architecture.md` / `03-configuration.md` / `06-networking.md` / `apps/kube-system.md`
+  now record the final state (global `datamodel` + per-service `snat`, "do not set global back to
+  `snat`") so a future change can't silently flip it without review.
 
 ### Cause 3 (client) — Safari's stale private-IP DNS answer
 - After (1)+(2) the tunnel and server were fully working — proven by the pod-netns self-test **and**
@@ -280,10 +285,15 @@ causes, found in order:
 
 ### Client-side requirements (the iPhone)
 1. iCloud **Private Relay OFF** (and "Use Private Relay for all websites" off).
-2. Fresh wg-easy QR profile — `DNS = 192.168.1.23`, `AllowedIPs = 10.8.0.0/24, 192.168.1.0/24`;
-   re-scan whenever the profile looks stale.
-3. Use **Firefox** for the home sites (or clear Safari's website data) — Safari can hold a stale
+2. Fresh wg-easy QR profile - `DNS = 192.168.1.23`, `AllowedIPs = 10.8.0.0/24, 192.168.1.0/24`;
+   re-scan whenever the profile looks stale. Exception: **JessePhone3 (client id 6)
+   deliberately runs full tunnel** (`AllowedIPs = 0.0.0.0/0, ::/0`, same DNS + keepalive 25)
+   since 2026-11-24 - iOS did not apply the profile's split-DNS for public-looking names under
+   split tunnel, so all its traffic now rides the tunnel (see the November incident).
+3. Use **Firefox** for the home sites (or clear Safari's website data) - Safari can hold a stale
    private-IP answer that a reboot / cache-clear fixes.
+4. The wg-easy UI is at `http://192.168.1.26/` (LB VIP; works off-site through the tunnel and
+   on-LAN once the 2026-11-24 Cilium fix landed). The `:30201` NodePort works again too.
 
 ### Verifying off-site
 In addition to the checks above: open `gitea.jesseisageek.com` and `sonarr.jesseisageek.com` in
@@ -329,3 +339,59 @@ traffic uses `10.8.0.0/24 dev wg0`.
 > a *local* address in the pod netns and blackholed all return traffic to the phone for ~9
 > minutes — it looks exactly like "tunnel alive but IP access dead". Removed immediately on
 > detection; the probe procedure now guarantees the cleanup runs in a separate step.
+
+### Server-side: the external-TCP blackhole and the permanent fix (2026-11-24)
+
+**Symptom:** on top of the client-side DNS problem above, *every* cluster UI was unreachable
+over TCP from outside the cluster: workstation/LAN/WAN → `192.168.1.2x:30201` (wg-easy UI),
+`:32500`, etc. all timed out, while the WireGuard tunnel (UDP 30200) and all in-cluster TCP
+worked fine.
+
+**Root cause:** the global `bpf-lb-mode: snat` set on 2026-10-27, running on Cilium
+**1.16.19**, blackholed **all external-origin TCP to every BPF-LB frontend — NodePorts *and*
+LoadBalancer VIPs — on both nodes**. Proven general with a brand-new service created during the
+diagnosis (fresh VIP: external source times out, in-cluster source works; same signature as
+every pre-existing frontend). The `cilium bpf lb ls` maps on both nodes are structurally
+identical for the working-UDP and dead-TCP frontends, so the LB table is innocent — the drop
+is in the TCP-specific ingress (from-netdev) handling under `snat` mode on 1.16.19 (BPF
+monitor logged zero events for SYNs that NIC counters proved arrived). Cilium 1.16 has no
+per-service forwarding mode, so no in-version workaround existed: either live with the
+blackhole or go back to global `datamodel`, which would regress the October phone→VIP fix.
+
+**Stopgap (2026-11-24):**
+- New `wg-easy/wg-easy-ui-lb` — LoadBalancer VIP **`192.168.1.26`** → wg-easy `:51821`
+  (ports 80 + 51821), folded into GitOps (`apps/wg-easy/wg-easy/app/lb-service.yaml`).
+  Phone-through-tunnel traffic arrives in the wg-easy pod netns and is masqueraded to the pod
+  IP — a path that works even under global snat — so with the full-tunnel profile the phone
+  reaches the UI at `http://192.168.1.26/` immediately (verified end-to-end from the pod
+  netns). Direct LAN/desktop access to it stayed broken until the upgrade.
+- JessePhone3 (client id 6) runs the **full-tunnel** profile (`AllowedIPs = 0.0.0.0/0, ::/0`,
+  DNS `192.168.1.23`, keepalive 25), so all of its traffic — home and external — rides the
+  tunnel and egresses through the healthy pod netns.
+
+**Permanent fix (2026-11-24):** Cilium **1.16.19 → 1.17.18** (flux chart *and* the k3s
+bootstrap copy `custom-cilium-helmchart`; k8s 1.29 is e2e-tested on 1.17.x), plus:
+- `bpf.lbModeAnnotation: true` (per-service forwarding mode — first available in 1.17);
+- global `loadBalancer.mode` back to **`datamodel`** (restores the pre-October
+  external-origin TCP behavior for all NodePorts/VIPs);
+- per-service annotation **`service.cilium.io/forwarding-mode: snat`** on exactly the
+  services carrying the masqueraded phone→VIP flow that needs SNAT return paths:
+  `nginx-external-controller` (.24), `nginx-internal-controller` (.25), `wg-easy-ui-lb` (.26);
+- `bpf.masquerade: false` + `hostLegacyRouting: true` kept untouched (UDP checksum safety net).
+
+Rollback = revert the commits (Flux returns to 1.16.19 global `snat` = the pre-fix state).
+
+**Verification (post-upgrade, 2026-11-24):** _fill in from the verification matrix:
+workstation (LAN) → `:30201` on `.20`/`.21` and `http://192.168.1.26/`; gitea `.24` / sonarr
+`.25` not regressed; from the wg-easy pod netns → `.24`/`.25`/`.26` + external name; external
+UDP 30200 (phone endpoint re-learned via keepalive); pinned VIPs `.22`–`.26` intact._
+
+**Re-test checklist (user, phone):**
+1. WireGuard app: import/re-scan the JessePhone3 profile (full-tunnel); VPN ON.
+2. iCloud **Private Relay** OFF (where the option exists).
+3. Open `http://192.168.1.26/` → the wg-easy UI loads.
+4. An external site (e.g. cnn.com) loads, and `sonarr.jesseisageek.com` /
+   `gitea.jesseisageek.com` load in **Firefox** (Safari can hold stale private-IP answers).
+
+Desktops: `https://<app>.jesseisageek.com` (LAN) and direct `192.168.1.2x:30201`-style access
+should work again from the LAN without any VPN.
