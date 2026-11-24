@@ -99,10 +99,23 @@ data:
       algorithm: maglev
       # Required on Cilium >= 1.17 when bpf.lbModeAnnotation: true: the agent
       # refuses to start (daemon/cmd/kube_proxy_replacement.go) unless
-      # --bpf-lb-dsr-dispatch=ipip. Inert for us (nodePortMode=snat); IPIP
-      # dispatch only matters for DSR services.
+      # --bpf-lb-dsr-dispatch=ipip. Inert while the global mode is snat;
+      # it is what makes global 'dsr' IMPOSSIBLE with annotations on 1.17:
+      # ipip dispatch is only accepted with --datapath-mode=lb-only, so on
+      # this cluster (routingMode: native) global dsr + per-service snat
+      # annotations crashloops the agent. Global 'snat' is therefore the
+      # only usable mode on Cilium 1.17.x here. Known cost: on 1.16.19 AND
+      # 1.17.18, global snat blackholes ALL external-origin TCP to BPF-LB
+      # frontends (NodePorts + LB VIPs) while UDP/in-cluster traffic works
+      # (verified 2026-11-24: probe SYNs reach the node NIC, zero cilium
+      # monitor events, drop inside the from-netdev BPF path). Off-site
+      # phone usage is unaffected: split-tunnel clients keep external
+      # traffic local, and the phone->VIP flows (.24/.25/.26) carry
+      # per-service 'snat' annotations. 'datamodel' (fixes both problems)
+      # exists only from Cilium 1.18 - the real fix is the >=1.18 upgrade.
+      # See docs/wireguard-offsite-vpn.md ("November 2026 incident").
       dsrDispatch: ipip
-      mode: {{ bootstrap_cilium_loadbalancer_mode | default('dsr', true) }}
+      mode: {{ bootstrap_cilium_loadbalancer_mode | default('snat', true) }}
     localRedirectPolicy: true
     operator:
       replicas: 1

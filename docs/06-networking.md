@@ -128,15 +128,17 @@ from the LAN via split-DNS, **not** from the internet.
 ## Internal cluster networking
 
 - **Cilium** is the CNI and replaces kube-proxy (MAGLEV L4 LB, global
-  forwarding mode `dsr` + `bpf.lbModeAnnotation: true` + `dsrDispatch: ipip`
+  forwarding mode `snat` + `bpf.lbModeAnnotation: true` + `dsrDispatch: ipip`
   via `bootstrap_cilium_loadbalancer_mode`, Cilium 1.17.18 since 2026-11-24).
-  History: `dsr` originally broke only the return path for WireGuard traffic
-  masqueraded through the wg-easy pod netns (Oct 2026); the temporary global
-  `snat` fix then blackholed all external-origin TCP to every BPF-LB frontend
-  (on 1.16.19 and still on 1.17.18 under our native-routing + hostLegacyRouting
-  topology). Final state: global `dsr` restored, with
-  `service.cilium.io/forwarding-mode: snat` on the three WireGuard VIP services
-  (.24/.25/.26) for the phone→VIP flows. See `wireguard-offsite-vpn.md`.
+  History: `dsr` broke the return path for WireGuard traffic masqueraded
+  through the wg-easy pod netns (2026-10-27 → global `snat`); global `snat`
+  on 1.16.19 then blackholed all external-origin TCP to every BPF-LB
+  frontend — and 1.17.18 does not fix that (topology-specific, verified
+  2026-11-24). Global `dsr` is not an option on 1.17.x (per-service
+  annotations force ipip dispatch, which needs `lb-only` datapath); `datamodel`
+  (fixes both) exists from 1.18. The three WireGuard VIP services
+  (.24/.25/.26) carry `service.cilium.io/forwarding-mode: snat`. See
+  `wireguard-offsite-vpn.md`.
 - **Static IPs** (LoadBalancers) via `io.cilium/lb-ipam-ips` annotations +
   **L2 announcements** (`CiliumL2AnnouncementPolicy` + `CiliumLoadBalancerIPPool`
   over the node CIDR, in `kube-system/cilium/app/cilium-l2.yaml`) — this is how

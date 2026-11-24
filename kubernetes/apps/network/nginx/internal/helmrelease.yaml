@@ -30,7 +30,7 @@ spec:
       replicaCount: 1
       service:
         annotations:
-          external-dns.alpha.kubernetes.io/hostname: "internal.jesseisageek.com"
+          external-dns.alpha.kubernetes.io/hostname: "internal.${SECRET_DOMAIN}"
           lbipam.cilium.io/ip: "192.168.1.25"
           # WireGuard phone->VIP flow needs SNAT (global mode is datamodel);
           # Cilium >= 1.17 with bpf.lbModeAnnotation (see docs/wireguard-offsite-vpn.md)

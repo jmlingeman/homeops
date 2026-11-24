@@ -24,16 +24,23 @@ VIPs (Cilium L2 / kube-vip style static IPs, see `bootstrap/vars/config.yaml`):
 | 192.168.1.211 | External Jellyfin/Plex VM (service down as of 2026-10-26; in-cluster proxy removed) |
 
 CIDRs: node `192.168.1.0/24`, pod `10.42.0.0/16`, service `10.43.0.0/16` (CoreDNS at 10.43.0.10).
-Cilium LB global forwarding mode: `dsr` (Cilium 1.17.18 since 2026-11-24; the
-pre-October mode — external-origin TCP to NodePorts/VIPs works under it, off-site
-reachability via L2 announcements) + `bpf.lbModeAnnotation: true` +
-`dsrDispatch: ipip` (mandatory with the annotation flag on 1.17). History: `dsr`
-broke only the WireGuard phone→VIP return path (Oct 2026); the temporary global
-`snat` fix blackholed **all external-origin TCP** to every BPF-LB frontend —
-reproduced on both Cilium 1.16.19 and 1.17.18 under our topology (native routing
-+ hostLegacyRouting), so the global mode went back to `dsr` while the phone→VIP
-flows (.24/.25/.26) keep SNAT via the explicit per-service annotation
-`service.cilium.io/forwarding-mode: snat`. Details in `wireguard-offsite-vpn.md`.
+Cilium LB global forwarding mode: `snat` (Cilium 1.17.18, 2026-11-24) +
+`bpf.lbModeAnnotation: true` + `dsrDispatch: ipip` (mandatory with the
+annotation flag on 1.17). History: `dsr` was the pre-October mode; it broke the
+WireGuard phone→VIP return path (2026-10-27) → flipped to global `snat`.
+Known cost of global `snat` on this topology (native routing + hostLegacyRouting):
+it blackholed **all external-origin TCP** to every BPF-LB frontend — reproduced
+on BOTH Cilium 1.16.19 and 1.17.18 (verified 2026-11-24: probe SYNs reach the
+node NIC, are dropped inside the from-netdev BPF path with zero `cilium monitor`
+events; in-cluster traffic unaffected). The alternative is inexpressible on
+1.17.x: global `dsr` + per-service annotations forces `dsrDispatch=ipip`, which
+is only accepted with `--datapath-mode=lb-only` (agent crashloops on native
+routing); `datamodel` mode — which would fix both problems — exists from
+Cilium 1.18. Accepted 1.17.x limitation: off-site external-origin TCP to
+cluster services is blackholed (UDP/VPN tunnel and in-cluster traffic fine;
+phone off-site usage unaffected via split tunnel + per-service
+`service.cilium.io/forwarding-mode: snat` on .24/.25/.26). The real fix is the
+Cilium ≥1.18 upgrade. Details in `wireguard-offsite-vpn.md`.
 
 ## Control plane: Flux
 

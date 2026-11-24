@@ -9,13 +9,19 @@ spec:
   # renovate: datasource=helm
   repo: https://helm.cilium.io/
   chart: cilium
-  version: 1.14.5
+  version: 1.17.18
   targetNamespace: kube-system
   bootstrap: true
   valuesContent: |-
     autoDirectNodeRoutes: true
     bpf:
-      masquerade: true
+      # keep in sync with the flux-managed values (apps/kube-system/cilium):
+      # eBPF NAT off (UDP checksum corruption on the WireGuard path), kernel
+      # stack routing so node nft MASQUERADE applies, per-service forwarding
+      # mode annotations enabled (Cilium >= 1.17).
+      masquerade: false
+      hostLegacyRouting: true
+      lbModeAnnotation: true
     bgp:
       enabled: false
     cluster:
