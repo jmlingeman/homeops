@@ -7,11 +7,18 @@ data:
   values.yaml: |
     autoDirectNodeRoutes: true
     bpf:
-      # 1.16.19 BPF NAT (SNAT/DNAT) corrupts UDP checksums on the fast path;
-      # phone (WireGuard) traffic must exit with a valid UDP checksum.
+      # eBPF NAT (SNAT/DNAT) on the fast path (observed on 1.16.19) can corrupt
+      # UDP checksums; phone (WireGuard) traffic must exit with a valid checksum.
+      # Kept off on 1.17.x too - harmless, and the VPN depends on it.
       masquerade: false
       # force the kernel (stack) routing path so node nft MASQUERADE applies
       hostLegacyRouting: true
+      # 2026-11-24: allow per-service forwarding mode (Cilium >= 1.17) via the
+      # service.cilium.io/forwarding-mode annotation. The global mode is
+      # 'datamodel' (global 'snat' on 1.16 blackholed external-origin TCP to
+      # every NodePort/VIP frontend); the WireGuard VIP services (.24/.25/.26)
+      # opt back into 'snat' per-service. See docs/wireguard-offsite-vpn.md.
+      lbModeAnnotation: true
     bgp:
       enabled: false
     cluster:
@@ -78,7 +85,7 @@ data:
       leaseRetryPeriod: 1s
     loadBalancer:
       algorithm: maglev
-      mode: snat
+      mode: datamodel
     localRedirectPolicy: true
     operator:
       replicas: 1

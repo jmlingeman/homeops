@@ -35,6 +35,9 @@ spec:
         annotations:
           external-dns.alpha.kubernetes.io/hostname: "external.${SECRET_DOMAIN}"
           lbipam.cilium.io/ip: "{{ bootstrap_external_ingress_addr }}"
+          # WireGuard phone->VIP flow needs SNAT (global mode is datamodel);
+          # Cilium >= 1.17 with bpf.lbModeAnnotation (see docs/wireguard-offsite-vpn.md)
+          service.cilium.io/forwarding-mode: snat
         externalTrafficPolicy: Cluster
       ingressClassResource:
         name: external

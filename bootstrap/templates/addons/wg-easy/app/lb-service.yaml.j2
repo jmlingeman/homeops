@@ -1,0 +1,32 @@
+---
+# LoadBalancer VIP for the wg-easy web UI.
+# 2026-11-24: introduced as a stopgap after global bpf-lb-mode=snat on Cilium
+# 1.16.19 blackholed ALL external-origin TCP to every NodePort/LB-VIP frontend;
+# it stays as the canonical UI address. The phone-through-full-tunnel flow
+# (masq src = wg-easy pod IP) needs SNAT for the VIP return path, so this
+# service opts into per-service snat (Cilium >= 1.17, bpf.lbModeAnnotation)
+# while the global mode is datamodel. See docs/wireguard-offsite-vpn.md.
+apiVersion: v1
+kind: Service
+metadata:
+  name: wg-easy-ui-lb
+  namespace: wg-easy
+  labels:
+    app.kubernetes.io/name: wg-easy
+  annotations:
+    service.cilium.io/forwarding-mode: snat
+    description: "wg-easy UI LoadBalancer VIP (192.168.1.26); per-service SNAT for the WireGuard phone->VIP flow"
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 192.168.1.26
+  selector:
+    app.kubernetes.io/name: wg-easy
+  ports:
+    - name: http
+      port: 80
+      targetPort: 51821
+      protocol: TCP
+    - name: app
+      port: 51821
+      targetPort: 51821
+      protocol: TCP
