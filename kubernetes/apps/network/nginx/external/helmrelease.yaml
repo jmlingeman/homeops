@@ -34,8 +34,11 @@ spec:
         annotations:
           external-dns.alpha.kubernetes.io/hostname: "external.${SECRET_DOMAIN}"
           lbipam.cilium.io/ip: "192.168.1.24"
-          # WireGuard phone->VIP flow needs SNAT (global mode is datamodel);
-          # Cilium >= 1.17 with bpf.lbModeAnnotation (see docs/wireguard-offsite-vpn.md)
+          # WireGuard phone->VIP flow would need SNAT (direct DSR breaks the
+          # masqueraded return path); inert while bpf.lbModeAnnotation is off on
+          # 1.17.x (it forces dsrDispatch=ipip, which only works with
+          # --datapath-mode=lb-only) - active again from the >=1.18 upgrade.
+          # See docs/wireguard-offsite-vpn.md.
           service.cilium.io/forwarding-mode: snat
         externalTrafficPolicy: Cluster
       ingressClassResource:

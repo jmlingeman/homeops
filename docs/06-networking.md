@@ -128,17 +128,20 @@ from the LAN via split-DNS, **not** from the internet.
 ## Internal cluster networking
 
 - **Cilium** is the CNI and replaces kube-proxy (MAGLEV L4 LB, global
-  forwarding mode `snat` + `bpf.lbModeAnnotation: true` + `dsrDispatch: ipip`
-  via `bootstrap_cilium_loadbalancer_mode`, Cilium 1.17.18 since 2026-11-24).
+  forwarding mode `dsr` via `bootstrap_cilium_loadbalancer_mode`, Cilium
+  1.17.18 since 2026-11-24, `bpf.lbModeAnnotation` off, no `dsrDispatch` —
+  default `opt` kernel DSR dispatch).
   History: `dsr` broke the return path for WireGuard traffic masqueraded
   through the wg-easy pod netns (2026-10-27 → global `snat`); global `snat`
   on 1.16.19 then blackholed all external-origin TCP to every BPF-LB
   frontend — and 1.17.18 does not fix that (topology-specific, verified
-  2026-11-24). Global `dsr` is not an option on 1.17.x (per-service
-  annotations force ipip dispatch, which needs `lb-only` datapath); `datamodel`
-  (fixes both) exists from 1.18. The three WireGuard VIP services
-  (.24/.25/.26) carry `service.cilium.io/forwarding-mode: snat`. See
-  `wireguard-offsite-vpn.md`.
+  2026-11-24). The 2026-11-24 attempt to keep per-service `snat` on the
+  WireGuard VIP services via `bpf.lbModeAnnotation` forced
+  `dsrDispatch: ipip`, which 1.17 only accepts with `--datapath-mode=lb-only`
+  (this cluster runs native/veth) — that combo crashlooped the agents on both
+  nodes and is why the annotation feature stays OFF on 1.17.x (the
+  .24/.25/.26 annotations are inert until ≥1.18, where `datamodel` fixes both
+  problems). See `wireguard-offsite-vpn.md`.
 - **Static IPs** (LoadBalancers) via `io.cilium/lb-ipam-ips` annotations +
   **L2 announcements** (`CiliumL2AnnouncementPolicy` + `CiliumLoadBalancerIPPool`
   over the node CIDR, in `kube-system/cilium/app/cilium-l2.yaml`) — this is how

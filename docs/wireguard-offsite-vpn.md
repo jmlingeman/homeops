@@ -244,17 +244,25 @@ causes, found in order:
   was tried first but is **inert on Cilium 1.16** (that version exposes only the global
   `bpf-lb-mode`, no per-service mode), so the global knob was the only fix available at the time.
   **Superseded 2026-11-24:** that global SNAT on Cilium 1.16.19 later blackholed *all* external-origin
-  TCP to every BPF-LB frontend (see "The November 2026 incident"). Final state: Cilium 1.17.18,
-  global `dsr` restored + per-service `service.cilium.io/forwarding-mode: snat` on .24/.25/.26
-  (global `snat` reproduces the blackhole on 1.17.18 as well in this topology).
+  TCP to every BPF-LB frontend (see "The November 2026 incident"). Final state (post-incident,
+  2026-11-24): Cilium 1.17.18 with global `dsr` restored and `bpf.lbModeAnnotation` **off** — the
+  per-service annotation feature (which would keep .24/.25/.26 on `snat`) cannot run on 1.17.x with
+  this cluster's native/veth datapath, because it forces `dsrDispatch=ipip`, which 1.17 only accepts
+  with `--datapath-mode=lb-only` (the combo crashlooped the agents on both nodes, see below). The
+  `service.cilium.io/forwarding-mode: snat` annotations therefore sit **inert** until the ≥1.18
+  upgrade (datamodel mode); until then the phone→VIP masqueraded return-path quirk documented here
+  recurs for direct phone→VIP flows, and the phone's supported paths are the wg-easy UI VIP `.26`
+  (pod-netns path, works under dsr) and the full-tunnel profile. (Global `snat` — the alternative —
+  reproduces the blackhole on 1.17.18 as well in this topology.)
 - **Verified post-fix** (pod-netns self-test, src `10.42.1.75`, real SNI/vhosts): `gitea` via `.24` →
   200, `sonarr` via `.25` → 302, `home` via `.25` → 200. On-LAN unaffected (gitea 200 ~8 ms,
   sonarr 302 ~7 ms).
 - **Tradeoff (as of October):** global SNAT added per-connection LB state and dropped DSR zero-copy
   for *all* BPF-LB services — negligible at home scale. That global-SNAT era ended 2026-11-24
   (see below); `01-architecture.md` / `03-configuration.md` / `06-networking.md` / `apps/kube-system.md`
-  now record the final state (global `dsr` + per-service `snat` annotations, "do not set the global
-  mode back to `snat`") so a future change can't silently flip it without review.
+  now record the final state (global `dsr`, `bpf.lbModeAnnotation` off on 1.17.x; "do not set the
+  global mode back to `snat`, and do not re-enable `bpf.lbModeAnnotation` below Cilium 1.18") so a
+  future change can't silently flip it without review.
 
 ### Cause 3 (client) — Safari's stale private-IP DNS answer
 - After (1)+(2) the tunnel and server were fully working — proven by the pod-netns self-test **and**
@@ -392,6 +400,33 @@ bootstrap copy `custom-cilium-helmchart`; k8s 1.29 is e2e-tested on 1.17.x), plu
 - `bpf.masquerade: false` + `hostLegacyRouting: true` kept untouched (UDP checksum safety net).
 
 Rollback = revert the commits (Flux returns to 1.16.19 global `snat` = the pre-fix state).
+
+**Post-upgrade crashloop and final resolution (2026-11-24, later the same day).** The
+combination above — `bpf.lbModeAnnotation: true` + `loadBalancer.dsrDispatch: ipip` + global
+`dsr` — cannot start on this cluster. The "ipip is mandatory with the annotation flag" half is
+true (`daemon/cmd/kube_proxy_replacement.go` refuses to start without it), but 1.17 has a second,
+previously-missed validation: `dsrDispatch=ipip` is only accepted with
+`--datapath-mode=lb-only` — and this cluster runs `routingMode: native` / veth datapath. So the
+agent daemonset fatal-looped on **both nodes** at hive start ("DSR dispatch mode ipip only
+supported for --datapath-mode=lb-only"); a follow-up attempt to dodge the blackhole by switching
+the global mode to `snat` (keeping `dsrDispatch: ipip`) still left external-origin TCP to every
+BPF-LB frontend blackholed (the topology-specific `snat` drop), so the domain stayed down.
+While the agents were down, kube-proxy replacement died cluster-wide: inter-node pod traffic
+broke (Longhorn engine↔replica dials timed out, gitea PostgreSQL PVCs served I/O errors → all
+three postgres pods and the gitea app pod crashlooped), and the edge nginx 503'd
+`gitea.jesseisageek.com` and everything else fronted through it.
+
+Final 1.17.18 state (what actually runs, committed 2026-11-24): global
+`loadBalancer.mode: dsr` with `bpf.lbModeAnnotation` **off** and **no**
+`bpf-lb-dsr-dispatch` set (default `opt` = kernel DSR dispatch, same as 1.16.x) — the
+pre-October configuration shape, which restores external-origin TCP for all NodePorts/VIPs (edge
+nginx → cluster path works again, domain back up). Consequences, accepted: the per-service
+`service.cilium.io/forwarding-mode: snat` annotations on .24/.25/.26 are inert (the feature they
+require is off), so the October phone→VIP masqueraded return-path quirk recurs for direct
+phone→VIP flows; phones keep working via the wg-easy UI VIP `.26` (pod-netns path, works under
+dsr) and the full-tunnel profile. Both problems are properly fixed only by the ≥1.18 upgrade
+(`datamodel` mode + per-service `snat`); until then treat the three config knobs above as
+locked.
 
 **Verification (post-upgrade, 2026-11-24):** _fill in from the verification matrix:
 workstation (LAN) → `:30201` on `.20`/`.21` and `http://192.168.1.26/`; gitea `.24` / sonarr

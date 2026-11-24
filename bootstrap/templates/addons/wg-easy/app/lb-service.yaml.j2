@@ -4,8 +4,11 @@
 # 1.16.19 blackholed ALL external-origin TCP to every NodePort/LB-VIP frontend;
 # it stays as the canonical UI address. The phone-through-full-tunnel flow
 # (masq src = wg-easy pod IP) needs SNAT for the VIP return path, so this
-# service opts into per-service snat (Cilium >= 1.17, bpf.lbModeAnnotation)
-# while the global mode is datamodel. See docs/wireguard-offsite-vpn.md.
+# service carries a per-service snat annotation (Cilium >= 1.17,
+# bpf.lbModeAnnotation); it is inert while that feature is off on 1.17.x
+# (annotation mode forces dsrDispatch=ipip, which only works with
+# --datapath-mode=lb-only) and takes effect on the >=1.18 upgrade.
+# See docs/wireguard-offsite-vpn.md.
 apiVersion: v1
 kind: Service
 metadata:

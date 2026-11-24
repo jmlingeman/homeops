@@ -18,11 +18,12 @@ spec:
     bpf:
       # keep in sync with the flux-managed values (apps/kube-system/cilium):
       # eBPF NAT off (UDP checksum corruption on the WireGuard path), kernel
-      # stack routing so node nft MASQUERADE applies, per-service forwarding
-      # mode annotations enabled (Cilium >= 1.17).
+      # stack routing so node nft MASQUERADE applies. bpf.lbModeAnnotation
+      # stays OFF (Nov 2026 incident: on 1.17.x it forces dsrDispatch=ipip,
+      # which is only valid with datapath-mode lb-only - this cluster runs
+      # native/veth, so the combo crashlooped the agents).
       masquerade: false
       hostLegacyRouting: true
-      lbModeAnnotation: true
     bgp:
       enabled: false
     cluster:
