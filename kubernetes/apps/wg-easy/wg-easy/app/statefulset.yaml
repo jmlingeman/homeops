@@ -14,11 +14,19 @@
 # all LAN->pod connections (NodePort 30201 UI, 30200 UDP) time out, while
 # other pods are unaffected.
 #
-# The postStart hook maintains two things inside the pod netns:
+# The postStart hook maintains three things inside the pod netns:
 # (a) it continuously removes the 192.168.1.0/24 route (see above), so
 #     pod->LAN replies follow the default route via eth0 (pod network ->
 #     node -> LAN) instead of being sent into the WireGuard tunnel.
-# (b) it keeps an nftables MASQUARDE rule for 10.8.0.0/24 -> eth0 in place.
+# (b) it removes any `default dev wg0` (v4+v6) route. Full-tunnel clients
+#     (AllowedIPs = 0.0.0.0/0, ::/0 — e.g. JessePhone3, Nov 2026) make the
+#     kernel install such a default route when wg0 is (re)loaded; if it
+#     survives alongside the eth0 default, the pod's own egress (UI/API on
+#     :51821 via NodePort, metrics) can flap onto the tunnel. Client->external
+#     forwarding does NOT need it: phone packets with public destinations
+#     still match the single `default via ... dev eth0` and get masqueraded
+#     out on eth0; only return traffic needs the 10.8.0.0/24 dev wg0 route.
+# (c) it keeps an nftables MASQUARDE rule for 10.8.0.0/24 -> eth0 in place.
 #     The app (v15, Node-based) installs its own MASQUARDE rule in the
 #     legacy iptables table at startup (the older image relied on the
 #     wg0.conf PostUp hooks, which the API-based config skips entirely),
@@ -154,7 +162,7 @@ spec:
               command:
               - /bin/sh
               - -c
-              - nohup sh -c 'while :; do ip route del 192.168.1.0/24 dev wg0 2>/dev/null; nft add table ip nat 2>/dev/null; nft list chain ip nat masq_post 2>/dev/null | grep -q masquerade || { nft delete chain ip nat masq_post 2>/dev/null; nft add chain ip nat masq_post "{ type nat hook postrouting priority 100; policy accept; }" 2>/dev/null; nft add rule ip nat masq_post ip saddr 10.8.0.0/24 oifname eth0 masquerade 2>/dev/null; }; sleep 5; done' >/dev/null 2>&1 &
+              - nohup sh -c 'while :; do ip route del 192.168.1.0/24 dev wg0 2>/dev/null; ip route del default dev wg0 2>/dev/null; ip -6 route del default dev wg0 2>/dev/null; nft add table ip nat 2>/dev/null; nft list chain ip nat masq_post 2>/dev/null | grep -q masquerade || { nft delete chain ip nat masq_post 2>/dev/null; nft add chain ip nat masq_post "{ type nat hook postrouting priority 100; policy accept; }" 2>/dev/null; nft add rule ip nat masq_post ip saddr 10.8.0.0/24 oifname eth0 masquerade 2>/dev/null; }; sleep 5; done' >/dev/null 2>&1 &
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler

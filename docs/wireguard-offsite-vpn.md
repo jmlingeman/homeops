@@ -1,6 +1,8 @@
 # Off-site WireGuard VPN (wg-easy) — how it works and what was fixed
 
-Status: **working** (verified off-site from a phone on cellular, September 2026).
+Status: **working** (verified off-site from a phone on cellular — September 2026 client fixes;
+October 2026 off-site `*.jesseisageek.com` DNS + load-balancer + Safari fixes, see
+"The October 2026 incident" below).
 
 Clients connect from anywhere to the home k3s cluster's WireGuard server
 (`wg-easy`, v15.4.0, Node-based image) and can reach the home LAN
@@ -198,3 +200,132 @@ nslookup sonarr.jesseisageek.com    # must answer 192.168.1.25
   `mangle` PREROUTING counter table) read before/after the client pings —
   arrivals prove the forward leg; the MASQUARDE counter proves the pod
   forwarded; node-side veth/ens18 stats prove node egress.
+
+## The October 2026 incident — off-site `*.jesseisageek.com` (gitea/sonarr) unreachable
+
+**Symptom (2026-10-27):** off-network (cellular, VPN on) the phone could not resolve or reach
+`*.jesseisageek.com` — both internal-only names (`sonarr`, `home`) and public ones (`gitea`, `www`) —
+while direct `192.168.1.*` IPs worked. On-network everything worked (VPN on or off). Three separate
+causes, found in order:
+
+### Cause 1 (client) — iCloud Private Relay hijacked the DNS
+- The iPhone had iCloud **Private Relay** on. With relay active, iOS sends *all* DNS — including
+  `*.jesseisageek.com` — to Apple's encrypted relay, bypassing the tunnel DNS (`192.168.1.23`).
+  Apple's resolvers have no record of the internal-only names (`sonarr`/`home` → NXDOMAIN) and return
+  Cloudflare public IPs for the public names, which don't serve the internal-only apps → timeout.
+  Direct `192.168.1.*` kept working because Apple's relay deliberately does **not** relay RFC1918
+  destinations — exactly the reported "IPs work, DNS doesn't" signature.
+- **Proven by live capture** on the wg-easy pod netns: the phone bootstrapped `p27-fmip.icloud.com`
+  over the tunnel, then ran QUIC/TLS sessions to Apple relay IPs (`17.248.x`/`17.250.x`/`17.253.x`)
+  over the tunnel; **zero** `*.jesseisageek.com` queries reached `192.168.1.23`.
+- **Fix (client):** Settings → [Apple ID] → iCloud → **Private Relay OFF** (and "Use Private Relay
+  for all websites" off). After this the phone's DNS flowed to `192.168.1.23` correctly.
+
+### Cause 2 (server) — Cilium BPF-LB `dsr` broke the VIP return path
+- The cluster's load balancer ran Cilium `bpf-lb-mode: dsr` (direct-server-return, no SNAT;
+  `bpf-lb-sock: false`). The gitea/sonarr VIPs are Cilium BPF-LB services: `192.168.1.24` =
+  `network/nginx-external-controller`, `192.168.1.25` = `network/nginx-internal-controller`.
+- WireGuard traffic is masqueraded in the wg-easy pod netns to the pod's k8s IP (`10.42.1.75`). In
+  DSR the backend nginx pods reply **directly** to that pod-IP source instead of looping back through
+  the LB; a reply to a pod-IP in another netns is never delivered back into the wg-easy pod → the
+  phone's SYNs to `.24`/`.25:443` enter the tunnel but no SYN-ACK returns → timeout.
+- **Why other paths worked:** plain LAN host IPs (e.g. Syncthing `192.168.1.211`) use normal routing
+  (no BPF-LB DSR), and on-LAN clients hit the VIPs via the LAN return path — neither is affected by
+  DSR.
+- **Confirmed by self-test** from the wg-easy pod netns using the phone's exact post-masq source
+  `10.42.1.75`: pre-fix `.24`/`.25` → timeout (no SYN-ACK); control `192.168.1.211` → instant; LAN
+  source → works.
+- **Fix (server, GitOps):** set the global Cilium LB mode to **SNAT** —
+  `bootstrap_cilium_loadbalancer_mode: snat` in `bootstrap/vars/config.yaml`, rendered into the
+  Cilium agent `helmvalues` (`bpf-lb-mode: snat`). With SNAT the LB rewrites the client source to the
+  VIP, the backend replies to the VIP, and the LB un-SNATs + forwards the reply through the CNI back
+  to the wg-easy pod → phone. A per-Service `service.cilium.io/load-balancer-mode: snat` annotation
+  was tried first but is **inert on Cilium 1.16** (that version exposes only the global
+  `bpf-lb-mode`, no per-service mode), so the global knob is the effective fix.
+- **Verified post-fix** (pod-netns self-test, src `10.42.1.75`, real SNI/vhosts): `gitea` via `.24` →
+  200, `sonarr` via `.25` → 302, `home` via `.25` → 200. On-LAN unaffected (gitea 200 ~8 ms,
+  sonarr 302 ~7 ms).
+- **Tradeoff:** SNAT adds per-connection LB state and drops DSR zero-copy for *all* BPF-LB services —
+  negligible at home scale. `06-networking.md` / `apps/kube-system.md` now record `snat` as the mode
+  (and the 1.16 no-per-service-mode caveat) so a future Cilium upgrade can't silently flip it back
+  without review.
+
+### Cause 3 (client) — Safari's stale private-IP DNS answer
+- After (1)+(2) the tunnel and server were fully working — proven by the pod-netns self-test **and**
+  by the user's own **Firefox** test over the same VPN. Safari still timed out, and the capture showed
+  Safari sending **zero** packets for gitea (no DNS query, no SYN): it was reusing a **stale
+  DNS/cache answer** held from the Private-Relay era instead of re-querying `192.168.1.23`. Firefox
+  re-resolves, so it worked. (Safari is an Apple system app and does **not** appear under
+  Settings → Privacy → Local Network — that list is third-party apps only — so there is no toggle to
+  flip.)
+- **Resolution:** use **Firefox** for the home sites (verified working off-site), or to make Safari
+  work: Settings → Safari → **Clear History and Website Data** + force-quit Safari (fallback:
+  re-scan the wg-easy QR for a fresh profile).
+
+### Supporting DNS change
+- k8s-gateway: enabled **zone fallthrough** so *unknown* `*.jesseisageek.com` names resolve via
+  upstream instead of NXDOMAIN — complements the split-DNS so the tunnel DNS answers public names
+  correctly for off-LAN clients.
+
+### Repo changes (this incident)
+| Commit | Change |
+|--------|--------|
+| `784ba2f8` | k8s-gateway zone fallthrough (unknown `*.jesseisageek.com` → upstream) |
+| `a784e925` | per-service `service.cilium.io/load-balancer-mode: snat` on nginx ext/internal — **inert on Cilium 1.16** (removed in `07c9046c`) |
+| `9711121f` | **the fix**: `bootstrap_cilium_loadbalancer_mode: snat` (Cilium `bpf-lb-mode: snat`) + docs (01/03/06 + apps/kube-system) |
+| `07c9046c` | removed the inert per-service annotations; single source of truth = global `bpf-lb-mode` |
+
+> The many `*.sops.yaml` line changes in these commits are SOPS re-encryption churn, not real config
+> changes.
+
+### Client-side requirements (the iPhone)
+1. iCloud **Private Relay OFF** (and "Use Private Relay for all websites" off).
+2. Fresh wg-easy QR profile — `DNS = 192.168.1.23`, `AllowedIPs = 10.8.0.0/24, 192.168.1.0/24`;
+   re-scan whenever the profile looks stale.
+3. Use **Firefox** for the home sites (or clear Safari's website data) — Safari can hold a stale
+   private-IP answer that a reboot / cache-clear fixes.
+
+### Verifying off-site
+In addition to the checks above: open `gitea.jesseisageek.com` and `sonarr.jesseisageek.com` in
+**Firefox** on cellular + VPN → both load. Server-side self-test from the wg-easy pod netns
+(src `10.42.1.75`): `https://gitea.jesseisageek.com` → 200, `sonarr` → 302.
+
+## The November 2026 incident - JessePhone3 on full tunnel
+
+**Symptom (2026-11-23/24, off-site LTE):** with the VPN on, `gitea.jesseisageek.com` /
+`sonarr.jesseisageek.com` by *name* and external sites (1.1.1.1, example.com) hung, while
+direct-IP home access worked. With the VPN off, gitea worked (public Cloudflare-fronted name)
+and external sites worked. iCloud Private Relay was **ruled out** (the user's Apple ID has no
+Private Relay option at all). All six stored client configs were verified correct in the DB
+(split AllowedIPs + DNS 192.168.1.23); the server side measured clean end-to-end (tunnel
+ingress/forward/masq, BPF-LB SNAT VIP returns, external egress from the phone's own tunnel
+source 10.8.0.7).
+
+**Root cause:** with the *split-tunnel* profile, iOS does not use the profile's DNS
+(192.168.1.23) for public-looking names — a 10-minute instrumented watch on the k8s-gateway
+showed **zero** DNS queries from the phone arriving at .23 even while the user tested by name.
+Name-based sites therefore resolved via the phone's other resolver (public/cellular path), so
+their fate tracked the phone's own external egress instead of the home network — and
+`sonarr.jesseisageek.com` (no usable public record) was unreachable either way. Direct-IP
+access needed no DNS and rode the (healthy) tunnel, which is why it alone kept working.
+
+**Fix (server, 2026-11-24):** JessePhone3 (client id 6) flipped to **full tunnel** via the
+wg-easy API: `AllowedIPs = 0.0.0.0/0, ::/0` (client- and server-side), DNS stays
+`192.168.1.23`, keepalive 25. All names now resolve through the split-DNS gateway (gitea→.24,
+sonarr→.25, public names→upstream) and all traffic rides the tunnel, whose egress was proven
+working from the phone's source IP (`1.1.1.1` → 301, sonarr VIP .25 → 302). The user re-scans
+the QR from the UI. App-wide defaults were already normalized (DNS .23, split AllowedIPs,
+keepalive 25), so *new* clients still get the sane split-tunnel profile.
+
+**Hardening:** the kernel installs a `default dev wg0` route for full-tunnel peers (AllowedIPs
+0.0.0.0/0), which would compete with the pod's eth0 default and flap the pod's own egress
+(UI/API :51821). The postStart hook now also deletes `default dev wg0` (v4 + v6) every 5s,
+alongside the existing `192.168.1.0/24` removal. Client->external forwarding does not need the
+wg0 default: such packets match the single eth0 default and get masqueraded; only return
+traffic uses `10.8.0.0/24 dev wg0`.
+
+> Operator note: mid-diagnosis a temporary `10.8.0.7/32` used for source-bound tests was
+> briefly left on wg0 (a test-script abort skipped its cleanup line). That made the phone's IP
+> a *local* address in the pod netns and blackholed all return traffic to the phone for ~9
+> minutes — it looks exactly like "tunnel alive but IP access dead". Removed immediately on
+> detection; the probe procedure now guarantees the cleanup runs in a separate step.
