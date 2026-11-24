@@ -4,13 +4,10 @@ Cluster networking and DNS plumbing.
 
 ## cilium
 
-CNI + service-mesh-free networking layer (chart `cilium` 1.17.18, repo `cilium`).
-Replaces kube-proxy (MAGLEV L4 LB, global forwarding mode `dsr` via
-`bootstrap_cilium_loadbalancer_mode`; `bpf.lbModeAnnotation` is off on 1.17.x, so the
-per-service `service.cilium.io/forwarding-mode: snat` annotations on the WireGuard VIP
-services are inert until the ≥1.18 upgrade — see `wireguard-offsite-vpn.md`), provides **L2
-announcements** (so the static VIPs 192.168.1.22–.26 work as LoadBalancers) and
-runs **Hubble** (observability).
+CNI + service-mesh-free networking layer (chart `cilium` 1.14.5, repo `cilium`).
+Replaces kube-proxy (MAGLEV/SNAT L4 LB, `bootstrap_cilium_loadbalancer_mode: snat`),
+provides **L2 announcements** (so the static VIPs 192.168.1.22–.25 work as
+LoadBalancers) and runs **Hubble** (observability).
 
 - **Ingress**: `hubble.${SECRET_DOMAIN}` (class `internal`) → Hubble UI
   (homepage widget, icon `cilium.png`).

@@ -19,30 +19,11 @@ VIPs (Cilium L2 / kube-vip style static IPs, see `bootstrap/vars/config.yaml`):
 | 192.168.1.23 | `k8s-gateway` — internal DNS (port 53) |
 | 192.168.1.24 | `nginx-external` ingress LoadBalancer |
 | 192.168.1.25 | `nginx-internal` ingress LoadBalancer |
-| 192.168.1.26 | `wg-easy` UI LoadBalancer (created 2026-11-24, see wireguard doc) |
 | 192.168.1.30 | NFS server (media/storage host, `nfs.local`) |
 | 192.168.1.211 | External Jellyfin/Plex VM (service down as of 2026-10-26; in-cluster proxy removed) |
 
 CIDRs: node `192.168.1.0/24`, pod `10.42.0.0/16`, service `10.43.0.0/16` (CoreDNS at 10.43.0.10).
-Cilium LB global forwarding mode: `dsr` (Cilium 1.17.18, restored 2026-11-24;
-the pre-October mode) with `bpf.lbModeAnnotation` OFF and no
-`bpf-lb-dsr-dispatch` set (default `opt`, kernel DSR dispatch as on 1.16.x).
-History: `dsr` broke the WireGuard phone→VIP return path (2026-10-27) →
-temporary global `snat`, which blackholed **all external-origin TCP** to every
-BPF-LB frontend on this topology (native routing + hostLegacyRouting) —
-reproduced on BOTH Cilium 1.16.19 and 1.17.18 (verified 2026-11-24: probe SYNs
-reach the node NIC, are dropped inside the from-netdev BPF path with zero
-`cilium monitor` events; in-cluster traffic unaffected). The 1.17.18 upgrade
-attempted per-service `snat` annotations (`bpf.lbModeAnnotation`) to keep the
-phone flows happy, but that feature forces `dsrDispatch=ipip`, which 1.17 only
-accepts with `--datapath-mode=lb-only` (this cluster runs native/veth) — the
-combination crashlooped the agents on both nodes (2026-11-24 incident, domain
-wide 503s via edge nginx). Final 1.17.x state: back to plain global `dsr` with
-the annotation feature off, which restores external-origin TCP to all
-frontends; accepted cost is the Oct-2026 phone→VIP return-path quirk coming
-back (the per-service `forwarding-mode: snat` annotations on .24/.25/.26 are
-inert until the ≥1.18 upgrade, which brings `datamodel` mode fixing both
-problems). Details in `wireguard-offsite-vpn.md`.
+Cilium LB mode: `snat` (was `dsr` until 2026-10-27: DSR broke the return path for BPF-LB VIP traffic forwarded+masqueraded through the wg-easy pod netns — off-network WireGuard clients could not reach 192.168.1.24/.25).
 
 ## Control plane: Flux
 

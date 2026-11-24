@@ -29,7 +29,7 @@ Template-provided keys (current values for this cluster):
 | `bootstrap_k8s_gateway_addr` | `192.168.1.23` | k8s-gateway LB IP |
 | `bootstrap_external_ingress_addr` | `192.168.1.24` | nginx-external LB IP |
 | `bootstrap_internal_ingress_addr` | `192.168.1.25` | nginx-internal LB IP |
-| `bootstrap_cilium_loadbalancer_mode` | `dsr` | Global Cilium LB forwarding mode (Cilium 1.17.18). `dsr` is the required mode on 1.17.x here: `snat` blackholed ALL external-origin TCP to every NodePort/LB-VIP frontend on 1.16.19 and still does on 1.17.18 (topology-specific: native routing + hostLegacyRouting; verified 2026-11-24), and `datamodel` (which would fix it) is a 1.18+ value the 1.17 agent rejects at startup. History: `dsr` (pre-October) broke the WireGuard phone→VIP return path (fixed 2026-10-27 by flipping to global `snat`); the 2026-11-24 attempt to keep per-service `snat` on the WireGuard VIP services via `bpf.lbModeAnnotation` forced `dsrDispatch: ipip`, which 1.17 only accepts with `--datapath-mode=lb-only` (this cluster runs `routingMode: native`) — that combo crashlooped the agents on both nodes, so the annotation feature stays OFF on 1.17.x (the .24/.25/.26 `forwarding-mode: snat` annotations are inert until the ≥1.18 upgrade). See `wireguard-offsite-vpn.md`. |
+| `bootstrap_cilium_loadbalancer_mode` | `snat` | `dsr` (default) or `snat`; set to `snat` on 2026-10-27 to fix WireGuard clients reaching the .24/.25 LB VIPs (Cilium 1.16 has no per-service mode override) |
 | `bootstrap_ipv6_enabled` | `false` | (advanced) |
 | `bootstrap_cluster_cidr` / `bootstrap_service_cidr` | `10.42.0.0/16` / `10.43.0.0/16` | → `cluster-settings.{CLUSTER,SERVICE}_CIDR` |
 | `bootstrap_local_storage_path` | `/var/openebs/local` | openebs-hostpath mount |

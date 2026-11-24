@@ -9,20 +9,13 @@ spec:
   # renovate: datasource=helm
   repo: https://helm.cilium.io/
   chart: cilium
-  version: 1.17.18
+  version: 1.14.5
   targetNamespace: kube-system
   bootstrap: true
   valuesContent: |-
     autoDirectNodeRoutes: true
     bpf:
-      # keep in sync with the flux-managed values (apps/kube-system/cilium):
-      # eBPF NAT off (UDP checksum corruption on the WireGuard path), kernel
-      # stack routing so node nft MASQUERADE applies. bpf.lbModeAnnotation
-      # stays OFF (Nov 2026 incident: on 1.17.x it forces dsrDispatch=ipip,
-      # which is only valid with datapath-mode lb-only - this cluster runs
-      # native/veth, so the combo crashlooped the agents).
-      masquerade: false
-      hostLegacyRouting: true
+      masquerade: true
     bgp:
       enabled: false
     cluster:
