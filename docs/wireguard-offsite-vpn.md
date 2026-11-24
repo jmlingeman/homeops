@@ -2,8 +2,9 @@
 
 Status: **working** (verified off-site from a phone on cellular — September 2026 client fixes;
 October 2026 off-site `*.jesseisageek.com` DNS + load-balancer + Safari fixes;
-November 2026 full-tunnel resolution + Cilium 1.17.18 per-service-SNAT fix for the
-external-TCP blackhole, see "The November 2026 incident" below).
+November 2026: the "external sites dead" outage traced to wg-quick full-tunnel policy routing
+(table 51820) in the pod netns — fixed by extending the postStart hook; see the November 2026
+incident section below).
 
 Clients connect from anywhere to the home k3s cluster's WireGuard server
 (`wg-easy`, v15.4.0, Node-based image) and can reach the home LAN
@@ -416,35 +417,30 @@ broke (Longhorn engine↔replica dials timed out, gitea PostgreSQL PVCs served I
 three postgres pods and the gitea app pod crashlooped), and the edge nginx 503'd
 `gitea.jesseisageek.com` and everything else fronted through it.
 
-Final resolution (2026-11-24, later the same day): **rolled back to Cilium 1.16.19**, the
-pre-October configuration shape — chart `1.16.19`, global `loadBalancer.mode: dsr`, no
-`bpf.lbModeAnnotation`, no `bpf-lb-dsr-dispatch`, `bpf.masquerade: false` +
-`hostLegacyRouting: true` and the pinned LAN VIPs untouched. This is the exact state that ran
-clean from August/September through early October (external-origin TCP to all NodePorts/VIPs
-works; phone tunnel fully functional, incl. full-tunnel egress). The 1.17.x series is NOT
-viable for this stack: beyond the crashloop validations above, **1.17.x breaks ALL TCP egress
-out of any pod whose netns contains an extra up interface with routes** — our kernel-WireGuard
-`wg0` in the wg-easy pod netns is exactly that. Bisected on 2026-11-24 with the pod on each
-node: `wg0` up → every TCP connect from the netns (LAN `.20:6443`, gateway DNS `.23:53`,
-external `1.1.1.1:443`) fails `EHOSTUNREACH` while ICMP works and sibling pods on the same
-node pass identical probes; `wg0` down → everything passes. Reproduced identically on both
-nodes → a datapath regression of the 1.17 series, not node corruption. Upstream has the same
-family of "in-pod kernel tunnel interface breaks Cilium BPF FIB/redirect handling" reports
-(#46211 in-pod tailscale, #49969 egress-gateway next-hop) still open/failing on 1.18–1.20.x,
-so the planned permanent fix remains the **>=1.18 upgrade once that family is fixed upstream**
-(`datamodel` mode + per-service `snat`), not any 1.17.x patch.
+**True root cause (established 2026-11-24): wg-quick full-tunnel policy routing in the pod netns — NOT Cilium.** The JessePhone3 profile (re-scanned Oct 2026) is full-tunnel (`AllowedIPs = 0.0.0.0/0, ::/0`). When wg-quick loads such a peer it installs `default dev wg0` into routing table **51820** plus the policy rules `not from all fwmark 0xca6c lookup 51820` (v4+v6) **in the pod's netns**. Those rules send ALL unmarked egress from the pod — its own connections *and* external traffic forwarded for VPN clients — into the tunnel: an external packet is encapsulated and sent back toward the phone that sent it, where it loops/black-holes. Symptom: "external websites hang, internal sites work" — LAN replies are unaffected because `192.168.1.0/24` lives in the main table, which the existing postStart hook already polices. The hook never touched table 51820 or the fwmark rules, so the bug lay dormant from the October re-scan until the **Nov 16 pod recreation (NAS disk failure)** booted a fresh netns that loaded the full-tunnel peer for the first time.
 
-Consequences of the rollback, accepted (same as pre-October): the per-service snat annotations
-on .24/.25/.26 are gone, so direct phone→VIP masqueraded return paths run DSR again (the
-October quirk); phones keep working via the full-tunnel profile (external + raw-LAN-IP) and
-via the wg-easy UI VIP `.26` (kept, pod-netns path, works under dsr). A worker `nodeSelector`
-pin on the wg-easy StatefulSet added mid-investigation (before the pod-vs-node isolation) was
-**removed** — the worker never had a problem either.
+Exoneration of Cilium, concretely: the identical failure (every TCP connect from the netns `EHOSTUNREACH`; ICMP and sibling pods on the same node fine) reproduced on **both 1.17.18 and 1.16.19** and on **both nodes**, and disappeared in all four combinations by flushing table 51820 and deleting the two fwmark rules. The earlier `wg0` up/down bisection is also explained by this (with wg0 down, the hijacked routes simply have no exit). The claim that "1.17.x breaks TCP egress from pods with a second interface" is **retracted** — it was the full-tunnel table all along. (1.17.18 *cannot start* on this cluster with the configs we require — the ipip/datamodel validation crashloops above remain real — and the >=1.18 `datamodel` + per-service-`snat` project for the phone→VIP return path is unchanged.)
 
-**Verification (post-upgrade, 2026-11-24):** _fill in from the verification matrix:
-workstation (LAN) → `:30201` on `.20`/`.21` and `http://192.168.1.26/`; gitea `.24` / sonarr
-`.25` not regressed; from the wg-easy pod netns → `.24`/`.25`/`.26` + external name; external
-UDP 30200 (phone endpoint re-learned via keepalive); pinned VIPs `.22`–`.26` intact._
+**Final state (2026-11-24):**
+- postStart hook extended (statefulset.yaml + bootstrap template): every 5 s it also runs
+  `ip -4/-6 route flush table 51820` and `ip -4/-6 rule del not from all fwmark 0xca6c lookup 51820` —
+  the netns is now robust against any current or future full-tunnel client. Full-tunnel clients
+  work correctly: their external traffic egresses via eth0 + MASQUERADE; split-tunnel clients
+  are unaffected; legitimate return traffic arrives on wg0 and matches the `10.8.0.0/24` route.
+- Cilium **rolled back to 1.16.19** (pre-October shape: global `dsr`, `bpf.lbModeAnnotation`
+  off, no `bpf-lb-dsr-dispatch`, `masquerade: false` + `hostLegacyRouting: true`, pinned VIPs) —
+  the exact state that ran clean from Aug/Sep through early Oct, and the safe default while
+  1.17.x cannot start on this cluster. Accepted consequence (same as pre-October): direct
+  phone→VIP masqueraded flows run DSR again; phones keep working via the full-tunnel profile
+  and the wg-easy UI VIP `.26`.
+- Worker `nodeSelector` pin added mid-investigation: **removed** (both nodes behave identically
+  once the full-tunnel table is stripped).
+
+**Verification (2026-11-24, pod netns, worker, 1.16.19, after removing the full-tunnel rules):**
+`.20:6443` OK · k8s-gateway DNS `.23:53` OK · `1.1.1.1:443` OK · `example.com` resolves via
+k8s-gateway upstream fallthrough and `HTTPS example.com` → **200** (identical pass on the
+controller-node pod). Workstation-side matrix (`.20`/`.21` `:30201`, `http://.26/`, gitea/sonarr
+domains) and the user's phone re-test: _pending user confirmation._
 
 **Re-test checklist (user, phone):**
 1. WireGuard app: import/re-scan the JessePhone3 profile (full-tunnel); VPN ON.

@@ -14,7 +14,7 @@
 # all LAN->pod connections (NodePort 30201 UI, 30200 UDP) time out, while
 # other pods are unaffected.
 #
-# The postStart hook maintains three things inside the pod netns:
+# The postStart hook maintains five things inside the pod netns:
 # (a) it continuously removes the 192.168.1.0/24 route (see above), so
 #     pod->LAN replies follow the default route via eth0 (pod network ->
 #     node -> LAN) instead of being sent into the WireGuard tunnel.
@@ -26,7 +26,21 @@
 #     forwarding does NOT need it: phone packets with public destinations
 #     still match the single `default via ... dev eth0` and get masqueraded
 #     out on eth0; only return traffic needs the 10.8.0.0/24 dev wg0 route.
-# (c) it keeps an nftables MASQUARDE rule for 10.8.0.0/24 -> eth0 in place.
+# (d) it flushes wg-quick's full-tunnel policy routing: any client with
+#     AllowedIPs = 0.0.0.0/0, ::/0 (JessePhone3, since Oct 2026) makes
+#     wg-quick install `default dev wg0` in routing table 51820 plus the
+#     policy rules `not from all fwmark 0xca6c lookup 51820` (v4+v6) in the
+#     POD's netns. Those rules send ALL unmarked egress — the pod's own
+#     connections AND forwarded VPN client traffic to external sites — into
+#     the tunnel; external packets loop back toward the sending phone and
+#     black-hole ("external websites hang, internal works" — the Nov 2026
+#     incident; surfaced when the Nov-16 pod recreation reloaded the config
+#     with the full-tunnel peer for the first time in a live netns).
+#     Flushing table 51820 + deleting the fwmark rules keeps split-tunnel
+#     forwarding intact and lets full-tunnel clients' external traffic
+#     egress via eth0 + masquerade. Legitimate client return traffic is
+#     unaffected: it arrives on wg0 and matches the 10.8.0.0/24 route.
+# (e) it keeps an nftables MASQUARDE rule for 10.8.0.0/24 -> eth0 in place.
 #     The app (v15, Node-based) installs its own MASQUARDE rule in the
 #     legacy iptables table at startup (the older image relied on the
 #     wg0.conf PostUp hooks, which the API-based config skips entirely),
@@ -162,7 +176,7 @@ spec:
               command:
               - /bin/sh
               - -c
-              - nohup sh -c 'while :; do ip route del 192.168.1.0/24 dev wg0 2>/dev/null; ip route del default dev wg0 2>/dev/null; ip -6 route del default dev wg0 2>/dev/null; nft add table ip nat 2>/dev/null; nft list chain ip nat masq_post 2>/dev/null | grep -q masquerade || { nft delete chain ip nat masq_post 2>/dev/null; nft add chain ip nat masq_post "{ type nat hook postrouting priority 100; policy accept; }" 2>/dev/null; nft add rule ip nat masq_post ip saddr 10.8.0.0/24 oifname eth0 masquerade 2>/dev/null; }; sleep 5; done' >/dev/null 2>&1 &
+              - nohup sh -c 'while :; do ip route del 192.168.1.0/24 dev wg0 2>/dev/null; ip route del default dev wg0 2>/dev/null; ip -6 route del default dev wg0 2>/dev/null; ip -4 route flush table 51820 2>/dev/null; ip -4 rule del not from all fwmark 0xca6c lookup 51820 2>/dev/null; ip -6 route flush table 51820 2>/dev/null; ip -6 rule del not from all fwmark 0xca6c lookup 51820 2>/dev/null; nft add table ip nat 2>/dev/null; nft list chain ip nat masq_post 2>/dev/null | grep -q masquerade || { nft delete chain ip nat masq_post 2>/dev/null; nft add chain ip nat masq_post "{ type nat hook postrouting priority 100; policy accept; }" 2>/dev/null; nft add rule ip nat masq_post ip saddr 10.8.0.0/24 oifname eth0 masquerade 2>/dev/null; }; sleep 5; done' >/dev/null 2>&1 &
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
