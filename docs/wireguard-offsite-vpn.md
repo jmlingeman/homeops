@@ -372,6 +372,10 @@ blackhole or go back to global `datamodel`, which would regress the October phon
 **Permanent fix (2026-11-24):** Cilium **1.16.19 → 1.17.18** (flux chart *and* the k3s
 bootstrap copy `custom-cilium-helmchart`; k8s 1.29 is e2e-tested on 1.17.x), plus:
 - `bpf.lbModeAnnotation: true` (per-service forwarding mode — first available in 1.17);
+- `loadBalancer.dsrDispatch: ipip` — mandatory on 1.17 with `lbModeAnnotation`: the
+  agent refuses to start otherwise (`daemon/cmd/kube_proxy_replacement.go` asserts
+  `--bpf-lb-dsr-dispatch=ipip`; the chart leaves it unset → "opt/geneve" → crashloop).
+  Inert for us since nodePortMode stays `snat`.
 - global `loadBalancer.mode` back to **`datamodel`** (restores the pre-October
   external-origin TCP behavior for all NodePorts/VIPs);
 - per-service annotation **`service.cilium.io/forwarding-mode: snat`** on exactly the

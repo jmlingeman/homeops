@@ -97,6 +97,11 @@ data:
       {% endif %}
     loadBalancer:
       algorithm: maglev
+      # Required on Cilium >= 1.17 when bpf.lbModeAnnotation: true: the agent
+      # refuses to start (daemon/cmd/kube_proxy_replacement.go) unless
+      # --bpf-lb-dsr-dispatch=ipip. Inert for us (nodePortMode=snat); IPIP
+      # dispatch only matters for DSR services.
+      dsrDispatch: ipip
       mode: {{ bootstrap_cilium_loadbalancer_mode | default('dsr', true) }}
     localRedirectPolicy: true
     operator:
