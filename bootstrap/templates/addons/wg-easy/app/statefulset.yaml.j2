@@ -66,6 +66,13 @@ spec:
         app.kubernetes.io/version: 15.3.0
         helm.sh/chart: wg-easy-1.2.0
     spec:
+      # Pinned to the worker since 2026-11-24: pods in the wg-easy netns on
+      # kube-controller received ICMP "host unreachable" for ALL TCP egress
+      # (LAN, external) while sibling pods on the same node were healthy and
+      # persisted across agent restarts and a node reboot; worker-node egress
+      # is verified clean. See docs/wireguard-offsite-vpn.md.
+      nodeSelector:
+        kubernetes.io/hostname: kube-worker
       containers:
       - env:
         - name: HOST
