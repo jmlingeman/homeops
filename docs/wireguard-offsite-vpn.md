@@ -451,3 +451,54 @@ domains) and the user's phone re-test: _pending user confirmation._
 
 Desktops: `https://<app>.jesseisageek.com` (LAN) and direct `192.168.1.2x:30201`-style access
 should work again from the LAN without any VPN.
+
+## The 2026-11-25/26 incident — external sites dead over the VPN: the `.23` VIP vanished from the LAN
+
+**Symptom:** off-site, VPN on: external websites hang; home-LAN/IP access works. Internal
+*name*-based sites also fail to resolve (they only "work" via direct IP/mDNS).
+
+**Root cause (proven with packet captures on both nodes):** the cluster-DNS VIP
+`192.168.1.23` (the `k8s-gateway` LoadBalancer service, pinned via
+`lbipam.cilium.io/...`) was **no longer answered by any node on the LAN**:
+`ip neigh` on both hosts shows `FAILED` for `.23`, and `cilium monitor` on both nodes proved
+the phone's DNS queries exit the wg-easy pod netns and the node kernel stack and then simply
+never reach the worker (zero events, zero drops) — the packet dies at the **ARP hop**.
+Nothing on the segment claimed `.23` (no LBIPAM host address, the L2 announcer had no valid
+entry to publish).
+
+Why the VIP went dark: Cilium **LBIPAM** had recorded the service at
+**`192.168.1.0`** — the pool's *first* address (our pool block is `192.168.1.0/24` and
+`allowFirstLastIPs` was not set) — instead of the pinned `.23`. The pin annotation in this
+repo used the **legacy singular key `lbipam.cilium.io/ip`**, which the running
+Cilium **1.16.19** build silently ignores: on any fresh allocation the pool hands out the
+first free IP. The fresh allocation happened when the Cilium upgrade of 2026-09-10 migrated
+the pool CRD (`spec.cidrs` → `spec.blocks`, generation bump ⇒ full re-allocation);
+`.24`/`.25` kept their old statuses and survived. It stayed invisible while JessePhone3 ran a
+split-tunnel profile (iOS resolves public names outside the tunnel), and bit once the phone
+moved to **full tunnel** (Oct 2026 re-scan): *all* DNS now goes to `.23`, so every external
+name failed to resolve while direct-IP home access kept working. The 2026-11-24
+"server-side clean" verifications missed it because pod-netns probes to `.23` are
+short-circuited by local Cilium BPF (LB DNAT to the backend pod) and **never traverse the
+wire** — only traffic from real tunnel clients exercises the dead LAN path.
+
+**Fix (2026-11-25/26):**
+- Pinned annotation switched to the honored plural key **`lbipam.cilium.io/ips`** on all three
+  VIP services (`k8s-gateway` `.23`, `nginx-external` `.24`, `nginx-internal` `.25`) — repo
+  HelmReleases *and* bootstrap templates. Applied live first (`kubectl annotate`); the agent
+  immediately released `.0` and satisfied the pin: `status.loadBalancer = 192.168.1.23`.
+- Pool hardened with **`allowFirstLastIPs: No`** (`cilium-l2.yaml` + template) so a future
+  failed/unpinned allocation can never silently take the subnet's network/broadcast address
+  as a VIP again.
+- Rolling `cilium` agent restarts (after each state correction) so agents re-import service
+  status and the L2 announcer (lease holder: currently kube-worker) republishes the VIPs on
+  the wire.
+
+**Verified (2026-11-26):** `ip neigh` from the controller host resolves `.23` to the worker's
+MAC (announcer answering ARP on the wire); DNS query for `example.com` to `192.168.1.23:53`
+from the wg-easy pod netns — the *phone's exact path* (netns masq → node stack → LAN → BPF-LB
+→ gateway pod → upstream) — returns real upstream answers. Phone re-test pending user
+confirmation.
+
+> Lesson: for LB-IPAM VIPs, always verify **from off-LAN / through the tunnel** (or watch
+> `ip neigh` + `cilium monitor` on both nodes). Pod-netns and in-cluster probes to a LoadBalancer
+> VIP prove nothing about the LAN-facing path.

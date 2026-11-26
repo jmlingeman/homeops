@@ -51,5 +51,8 @@ spec:
       type: LoadBalancer
       port: 53
       annotations:
-        lbipam.cilium.io/ip: "192.168.1.23"
+        # cilium >=1.16 only honors the plural "ips" annotation; the legacy
+        # singular "ip" form is silently ignored (broke offsite DNS 2026-11,
+        # see docs/wireguard-offsite-vpn.md)
+        lbipam.cilium.io/ips: "192.168.1.23"
       externalTrafficPolicy: Cluster

@@ -21,3 +21,6 @@ spec:
   # cilium 1.16 renamed spec.cidrs -> spec.blocks (CRD update prunes the old field)
   blocks:
     - cidr: "${NODE_CIDR}"
+  # Without this, a failed/unpinned allocation silently takes the subnet's
+  # network address (192.168.1.0) as the service VIP (see 2026-11 incident)
+  allowFirstLastIPs: No
