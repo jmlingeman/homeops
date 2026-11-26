@@ -530,3 +530,32 @@ phone re-test by the user confirms.
 > exits with a different source identity than the real flow and silently tests a different
 > datapath. Node-SNAT'd (src = peer node IP) packets are exempt from LB DNAT on the peer
 > node — keep LB VIPs out of `bpfMasqueradeRange`-style node re-SNAT.
+
+### 2026-11-26 follow-on: host `CILIUM_POST_nat` ordering re-broke tunnel DNS
+
+The `bpfMasqueradeRange` fix above removes the *BPF-layer* re-SNAT, but a second,
+independent re-SNAT sits in the host's **nftables** (`ip nat CILIUM_POST_nat`, managed
+by ip-masq-agent via iptables-nft): `saddr <podCIDR> -> masquerade`. The wg-easy netns
+stamps Cilium's skip-NAT fwmark (`0x00000a00`) on `.23`-bound packets so this rule
+spares them — but Cilium ships the exemption rule (a) as `accept` instead of `return`
+(`accept` does not stop chain evaluation, so even in the right position it cannot
+prevent the later masquerade rule) and (b) ordered **after** the masquerade rule, so
+it never fires for the protected traffic. Counter-proof: masquerade rule showed ~3200
+hits while the mark rule showed 0, and wire captures showed every phone DNS query
+leaving the egress node with the node's LAN IP as source (peer node then treated it as
+inter-node traffic: no LB DNAT, response blackholed).
+
+Net effect (after the pod re-roll of 2026-11-26): offsite clients' DNS through the
+tunnel (192.168.1.23) times out again while direct-IP LAN access works.
+
+**Fix:**
+1. One-off: rebuilt `CILIUM_POST_nat` on both nodes with the exemption as
+   `meta mark & 0xe00 == 0xa00 return` at the **top** of the chain.
+2. Permanent: `cilium-nat-skip-guard` DaemonSet (kube-system) re-checks the chain
+   every 5 s and rebuilds it if the mark-`return` rule is missing or sits below the
+   masquerade rule. ip-masq-agent re-breaks the ordering whenever the Cilium agent
+   restarts or its config changes; the guard heals it within seconds.
+
+Verified: from the wg-easy netns, `nslookup example.com 192.168.1.23` (external name
+via the k8s-gateway upstream fallthrough) and `curl https://example.com` both succeed
+over the exact path the phones use.

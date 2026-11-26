@@ -66,6 +66,14 @@
 #     source IP preserved on the wire, the peer node's BPF LB DNATs and
 #     returns the reply to the pod IP, which this netns un-masquerades
 #     back to 10.8.0.x and delivers over wg0.
+#     IMPORTANT: on the host side the exemption rule must be a `return`
+#     placed ABOVE the `saddr <podCIDR> masquerade` rule in CILIUM_POST_nat
+#     — Cilium ships it as an `accept` below the masquerade rule, which is
+#     inert (`accept` does not stop chain evaluation, and it is ordered
+#     last). ip-masq-agent re-breaks the ordering on agent restart, so the
+#     cilium-nat-skip-guard DaemonSet (kube-system) rebuilds the chain
+#     within ~5s of any regression. See docs/wireguard-offsite-vpn.md,
+#     "November 2026 incident".
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:

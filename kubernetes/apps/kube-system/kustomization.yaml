@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - ./namespace.yaml
   - ./cilium/ks.yaml
+  - ./cilium-nat-skip-guard/ks.yaml
   - ./coredns/ks.yaml
   - ./kine-wal/ks.yaml
   - ./metrics-server/ks.yaml
