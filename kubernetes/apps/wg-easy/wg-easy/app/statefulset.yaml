@@ -54,6 +54,18 @@
 #     into this netns, where conntrack un-masquerades them to 10.8.0.x.
 #     The 10.8.0.0/24 route itself stays; client->LAN forwarding through
 #     the server keeps working.
+# (f) it stamps Cilium's skip-NAT fwmark (0x00000a00) onto packets bound
+#     for the LBIPAM VIPs 192.168.1.23-26. The node's CILIUM_POST_nat
+#     chain accepts marked packets without masquerading them: without
+#     this, forwarded tunnel-client traffic re-SNAT'd to the node IP
+#     (e.g. 192.168.1.20) is treated by the peer node's Cilium as trusted
+#     inter-node traffic, skips LoadBalancer DNAT, and blackholes at the
+#     wire (offsite VPN DNS dead while direct-IP access worked — the
+#     2026-11-25/26 incident; pcap-proven: the worker re-emitted every
+#     phone query back out of ens18 with no LB event). With the pod
+#     source IP preserved on the wire, the peer node's BPF LB DNATs and
+#     returns the reply to the pod IP, which this netns un-masquerades
+#     back to 10.8.0.x and delivers over wg0.
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -176,7 +188,7 @@ spec:
               command:
               - /bin/sh
               - -c
-              - nohup sh -c 'while :; do ip route del 192.168.1.0/24 dev wg0 2>/dev/null; ip route del default dev wg0 2>/dev/null; ip -6 route del default dev wg0 2>/dev/null; ip -4 route flush table 51820 2>/dev/null; ip -4 rule del not from all fwmark 0xca6c lookup 51820 2>/dev/null; ip -6 route flush table 51820 2>/dev/null; ip -6 rule del not from all fwmark 0xca6c lookup 51820 2>/dev/null; nft add table ip nat 2>/dev/null; nft list chain ip nat masq_post 2>/dev/null | grep -q masquerade || { nft delete chain ip nat masq_post 2>/dev/null; nft add chain ip nat masq_post "{ type nat hook postrouting priority 100; policy accept; }" 2>/dev/null; nft add rule ip nat masq_post ip saddr 10.8.0.0/24 oifname eth0 masquerade 2>/dev/null; }; sleep 5; done' >/dev/null 2>&1 &
+              - nohup sh -c 'while :; do ip route del 192.168.1.0/24 dev wg0 2>/dev/null; ip route del default dev wg0 2>/dev/null; ip -6 route del default dev wg0 2>/dev/null; ip -4 route flush table 51820 2>/dev/null; ip -4 rule del not from all fwmark 0xca6c lookup 51820 2>/dev/null; ip -6 route flush table 51820 2>/dev/null; ip -6 rule del not from all fwmark 0xca6c lookup 51820 2>/dev/null; nft add table ip nat 2>/dev/null; nft list chain ip nat masq_post 2>/dev/null | grep -q masquerade || { nft delete chain ip nat masq_post 2>/dev/null; nft add chain ip nat masq_post "{ type nat hook postrouting priority 100; policy accept; }" 2>/dev/null; nft add rule ip nat masq_post ip saddr 10.8.0.0/24 oifname eth0 masquerade 2>/dev/null; }; nft add table ip mangle 2>/dev/null; nft list chain ip mangle vip_no_node_masq 2>/dev/null | grep -q "meta mark set" || { nft delete chain ip mangle vip_no_node_masq 2>/dev/null; nft add chain ip mangle vip_no_node_masq "{ type filter hook postrouting priority 300; policy accept; }" 2>/dev/null; }; nft add rule ip mangle vip_no_node_masq ip daddr { 192.168.1.23, 192.168.1.24, 192.168.1.25, 192.168.1.26 } meta mark set 0x00000a00 2>/dev/null; sleep 5; done' >/dev/null 2>&1 &
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler

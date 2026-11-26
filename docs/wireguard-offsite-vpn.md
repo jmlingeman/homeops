@@ -496,9 +496,37 @@ wire** — only traffic from real tunnel clients exercises the dead LAN path.
 **Verified (2026-11-26):** `ip neigh` from the controller host resolves `.23` to the worker's
 MAC (announcer answering ARP on the wire); DNS query for `example.com` to `192.168.1.23:53`
 from the wg-easy pod netns — the *phone's exact path* (netns masq → node stack → LAN → BPF-LB
-→ gateway pod → upstream) — returns real upstream answers. Phone re-test pending user
-confirmation.
+→ gateway pod → upstream) — returns real upstream answers.
+
+**Second bug found the same night (pcap-proven) — node-SNAT made tunnel traffic look
+inter-node, so the peer node skipped LoadBalancer DNAT:** with the `.23` VIP restored, the
+phone's DNS *still* timed out. Synchronized captures on both nodes + inside the pod netns
+showed the full chain up to the wire: netns masq (`10.8.0.7 → 10.42.0.162`) → **node stack
+re-SNAT to `192.168.1.20`** (`CILIUM_POST_nat`: `ip saddr 10.42.0.0/24 … masquerade`) → wire
+→ worker. On the worker, Cilium sees src = a k8s **node IP** and treats it as trusted
+inter-node traffic: it does **no LB DNAT**, the kernel re-routes the packet (114 re-emitted
+queries captured leaving the worker), and it dies at the router. Replies therefore never
+existed. Non-node sources were fine all along — a `dig` from a plain LAN IP
+(`-b 192.168.1.50`) to `.23` worked while the phone's identical query blackholed. Only
+full-tunnel clients hit this: split-tunnel phones send public DNS over cellular, and direct
+LAN-*IP* access never involves an LB VIP.
+
+Earlier "server-side verified" checks had masked it twice: (a) pod-netns probes are
+short-circuited by the local node's BPF LB and never cross the wire; (b) a socket bound to
+`10.8.0.7` inside the netns exits with a **non-cluster** source, which the node does not
+masquerade — so it exercised the working path, not the phone's.
+
+**Fix (2026-11-26, commit `dd2d8cea`):** `bpfMasqueradeRange: 192.168.1.23/32 … .26/32` in
+the Cilium values (repo + bootstrap template) — the four LBIPAM VIPs are excluded from
+node-level masquerade, so tunnel traffic keeps its pod source IP on the wire. The peer
+node's BPF LB then DNATs normally and returns the reply (src = VIP) to the pod IP → netns
+un-masq → `wg0` → phone. Verified end-to-end with a pod-CIDR source test across the wire;
+phone re-test by the user confirms.
 
 > Lesson: for LB-IPAM VIPs, always verify **from off-LAN / through the tunnel** (or watch
 > `ip neigh` + `cilium monitor` on both nodes). Pod-netns and in-cluster probes to a LoadBalancer
-> VIP prove nothing about the LAN-facing path.
+> VIP prove nothing about the LAN-facing path. And when simulating a tunnel client, the test
+> source must be a **cluster-source that the node will masquerade** (pod-CIDR), or the test
+> exits with a different source identity than the real flow and silently tests a different
+> datapath. Node-SNAT'd (src = peer node IP) packets are exempt from LB DNAT on the peer
+> node — keep LB VIPs out of `bpfMasqueradeRange`-style node re-SNAT.
