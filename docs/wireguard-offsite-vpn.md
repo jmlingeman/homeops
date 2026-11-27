@@ -564,3 +564,16 @@ after the fix — fresh lookups heal immediately.
 the node's `CILIUM_POST_nat` masquerade rule carries the VIP exclusion and rebuilds
 the chain (CIDR/snat parsed from the existing rules) whenever ip-masq-agent
 recreates it without the exclusion (agent restarts, config changes).
+
+**Root cause of the ~2-week outage (confirmed 2026-11-27 by full-path capture):**
+the phone's DNS queries were reaching the gateway, but in Cilium **DSR** LB mode the
+gateway pod answered with its own IP (`10.42.0.118:1053`) instead of the `.23` VIP;
+the wg-easy netns conntrack then dropped the mismatched reply (ICMP
+port-unreachable), so the phone got no DNS response at all. The 2026-11-24 rollback
+to Cilium 1.16.19 had silently restored the pre-October `loadBalancer.mode: dsr`,
+undoing the 2026-10-27 fix (`mode: snat`, commit 9711121f) that made offsite WireGuard
+VIP access work. Fixed by setting `loadBalancer.mode: snat` again (bootstrap var
+`bootstrap_cilium_loadbalancer_mode: snat` + generated tree); with SNAT the LB
+rewrites the client source to the VIP, so replies arrive as `.23:53` and the netns
+un-masquerades them to `10.8.0.x`. The nft/guard work above is still kept as defense
+in depth for the host-masquerade layer.

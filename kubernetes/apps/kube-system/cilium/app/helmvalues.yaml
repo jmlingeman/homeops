@@ -78,7 +78,10 @@ data:
       leaseRetryPeriod: 1s
     loadBalancer:
       algorithm: maglev
-      mode: dsr
+      # MUST be snat on this stack: offsite WireGuard VIP traffic sources as
+      # a pod IP via the wg-easy netns; DSR direct-return breaks it (see
+      # bootstrap/vars/config.sample.yaml comment, docs/wireguard-offsite-vpn.md).
+      mode: snat
     localRedirectPolicy: true
     operator:
       replicas: 1

@@ -56,11 +56,14 @@ bootstrap_external_ingress_addr:
 # The Load balancer IP for internal ingress, choose an available IP in your nodes network that is not being used
 bootstrap_internal_ingress_addr:
 
-# (Advanced) Cilium load balancer mode, choose either 'dsr' or 'snat'
-# Due to unknown reasons some people need this set to 'snat' in order
-# for Cilium L2 announcements to work properly. Keep this dsr unless
-# you have issues with connecting to Cilium L2 announcements.
-bootstrap_cilium_loadbalancer_mode: dsr
+# (Advanced) Cilium load balancer mode, choose either 'dsr' or 'snat'.
+# This cluster MUST use 'snat': offsite WireGuard clients reach BPF-LB VIPs
+# (192.168.1.23-.26) with a pod-IP source via the wg-easy pod netns, and in
+# DSR mode the backends' direct return packets are not delivered back into
+# that netns (conntrack drops them as ICMP port-unreachable) -> offsite DNS
+# hangs. Reverting to dsr on 2026-11-24 (Cilium 1.16.19 rollback) re-broke
+# offsite VPN; snat is the proven-good mode on 1.16.19 (2026-10-27).
+bootstrap_cilium_loadbalancer_mode: snat
 
 # Keep the next three options default unless you know what you are doing
 # (Advanced) Enable ipv6
