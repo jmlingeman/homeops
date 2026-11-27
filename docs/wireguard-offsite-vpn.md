@@ -531,31 +531,36 @@ phone re-test by the user confirms.
 > datapath. Node-SNAT'd (src = peer node IP) packets are exempt from LB DNAT on the peer
 > node — keep LB VIPs out of `bpfMasqueradeRange`-style node re-SNAT.
 
-### 2026-11-26 follow-on: host `CILIUM_POST_nat` ordering re-broke tunnel DNS
+### 2026-11-26/27 follow-on: host `CILIUM_POST_nat` masquerade re-broke tunnel DNS (twice)
 
-The `bpfMasqueradeRange` fix above removes the *BPF-layer* re-SNAT, but a second,
-independent re-SNAT sits in the host's **nftables** (`ip nat CILIUM_POST_nat`, managed
-by ip-masq-agent via iptables-nft): `saddr <podCIDR> -> masquerade`. The wg-easy netns
-stamps Cilium's skip-NAT fwmark (`0x00000a00`) on `.23`-bound packets so this rule
-spares them — but Cilium ships the exemption rule (a) as `accept` instead of `return`
-(`accept` does not stop chain evaluation, so even in the right position it cannot
-prevent the later masquerade rule) and (b) ordered **after** the masquerade rule, so
-it never fires for the protected traffic. Counter-proof: masquerade rule showed ~3200
-hits while the mark rule showed 0, and wire captures showed every phone DNS query
-leaving the egress node with the node's LAN IP as source (peer node then treated it as
-inter-node traffic: no LB DNAT, response blackholed).
+The `bpfMasqueradeRange` fix above (later reverted — the 1.16 chart ignores it;
+`bpf.masquerade: false` + `hostLegacyRouting: true` means ALL node masquerade happens
+in nftables `ip nat CILIUM_POST_nat`, managed by ip-masq-agent) left a second
+re-SNAT in place: `saddr <podCIDR> -> masquerade`. Packets from the wg-easy netns
+(pod source) bound for the in-tunnel DNS VIP `.23` were re-masqueraded to the egress
+node IP on the wire; the peer node's Cilium then treated them as inter-node traffic,
+skipped LB DNAT, and blackholed the replies: offsite DNS/external sites dead again
+while direct-IP LAN access worked (pcap-proven on both nodes 2026-11-26/27: worker
+ens18 showed every phone query leaving as `src 192.168.1.20, dst 192.168.1.23:53`,
+zero responses returning to the pod IP).
 
-Net effect (after the pod re-roll of 2026-11-26): offsite clients' DNS through the
-tunnel (192.168.1.23) times out again while direct-IP LAN access works.
+**Attempt 1 (FAILED):** stamp fwmark `0x00000a00` in the pod netns + a `return` rule
+at the top of `CILIUM_POST_nat`. Probe counters proved the mark never survives from
+the pod netns to the host's nft tables — Cilium's BPF rewrites `skb->mark` on the
+veth handoff, so the mark-based skip silently no-ops. (Earlier "verified from the pod
+netns" tests masked this twice: local pod-netns probes short-circuit in the local
+node's BPF LB and never exercise the real phone path.)
 
-**Fix:**
-1. One-off: rebuilt `CILIUM_POST_nat` on both nodes with the exemption as
-   `meta mark & 0xe00 == 0xa00 return` at the **top** of the chain.
-2. Permanent: `cilium-nat-skip-guard` DaemonSet (kube-system) re-checks the chain
-   every 5 s and rebuilds it if the mark-`return` rule is missing or sits below the
-   masquerade rule. ip-masq-agent re-breaks the ordering whenever the Cilium agent
-   restarts or its config changes; the guard heals it within seconds.
+**Fix (2026-11-27, live-verified on the wire):** exclude the LBIPAM VIPs from the
+masquerade rule itself — no marks involved, immune to BPF:
+`oifname != "cilium_*" ip saddr <podCIDR> ip daddr != 10.42.0.0/16 ip daddr != { 192.168.1.23, .24, .25, .26 } masquerade`.
+Pod source reaches the wire intact; the peer node's BPF LB DNATs and returns the
+reply to the pod IP → netns un-masqs to 10.8.0.x → phone. Wire capture confirmed
+`src 10.42.0.94 → dst 192.168.1.23:53` and resolutions flowing to the phone.
+Note: in-flight DNS flows keep old (broken) conntrack translations for ~30-120s
+after the fix — fresh lookups heal immediately.
 
-Verified: from the wg-easy netns, `nslookup example.com 192.168.1.23` (external name
-via the k8s-gateway upstream fallthrough) and `curl https://example.com` both succeed
-over the exact path the phones use.
+**Permanent:** `cilium-nat-skip-guard` DaemonSet (kube-system) checks every 5s that
+the node's `CILIUM_POST_nat` masquerade rule carries the VIP exclusion and rebuilds
+the chain (CIDR/snat parsed from the existing rules) whenever ip-masq-agent
+recreates it without the exclusion (agent restarts, config changes).

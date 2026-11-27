@@ -1,30 +1,27 @@
 ---
 # cilium-nat-skip-guard
 #
-# WHY THIS EXISTS (incident 2026-11-26):
-#   The offsite WireGuard VPN (wg-easy) keeps a MASQUARDE rule in the pod's
-#   netns and stamps Cilium's skip-NAT fwmark (0x00000a00) on packets bound
-#   for the in-tunnel DNS server (192.168.1.23), so that after leaving the
-#   pod's netns the HOST's nftables do NOT masquerade them back to the node
-#   IP. If the host masquerades them anyway, the peer node's BPF load
-#   balancer treats the return traffic as inter-node (node-IP-source)
-#   traffic and blackholes it: offsite clients' DNS (and everything using
-#   the tunnel's DNS) times out while direct-IP LAN access still works.
+# WHY THIS EXISTS (incident 2026-11-25/27):
+#   The offsite WireGuard VPN (wg-easy) forwards tunnel-client traffic out
+#   through the pod's netns with the pod's IP as source. If the HOST
+#   re-masquerades that source to the node IP (e.g. 192.168.1.20), the peer
+#   node's Cilium treats the packet as trusted inter-node traffic and skips
+#   LoadBalancer DNAT for the in-tunnel DNS VIP (192.168.1.23): replies are
+#   blackholed and offsite clients' DNS/external sites die while direct-IP
+#   LAN access keeps working.
 #
-#   The host-side chain CILIUM_POST_nat (managed by ip-masq-agent via the
-#   iptables-nft backend) ships the mark exemption as an `accept` rule —
-#   which is doubly wrong:
-#     1. `accept` does not stop evaluation, so even correctly ordered it
-#        would not prevent the later masquerade rule from firing. The rule
-#        must be a `return`.
-#     2. Cilium orders it AFTER the `saddr <podCIDR> masquerade` rule, so
-#        it is unreachable for exactly the traffic it is meant to protect.
+#   Two skip mechanisms were tried; only the second one is reliable:
+#     1. fwmark (0x00000a00) + mark-return rule in CILIUM_POST_nat — FAILED:
+#        Cilium's BPF rewrites skb->mark between the pod netns and the host
+#        nft tables, so the mark never survives to the nat chain.
+#     2. daddr exclusion — the CILIUM_POST_nat masquerade rule must NOT
+#        match the LBIPAM VIPs: `ip daddr != { .23, .24, .25, .26 }`.
+#        Needs no marks and is immune to BPF and to agent chain rebuilds
+#        (that's what this DaemonSet re-applies within ~5s).
 #
-#   ip-masq-agent rebuilds CILIUM_POST_nat on agent restart / config change
-#   and re-introduces both defects. This DaemonSet runs on every node and
-#   keeps the chain in the correct shape: if the mark-RETURN rule is missing
-#   or sits below the masquerade rule, the chain is rebuilt (parameters are
-#   parsed from the existing rules first) with the return rule at the top.
+#   ip-masq-agent recreates CILIUM_POST_nat without the VIP exclusion on
+#   agent restart / config change; this DaemonSet runs on every node and
+#   rebuilds the chain (parsing CIDR/snat target from the existing rules).
 #
 # NOTE: the wg-easy image is reused only because it is already present on
 # both nodes and contains nftables + shell; it is idle in this workload.
@@ -59,16 +56,20 @@ spec:
             - -c
             - |
               set -u
+              VIPSET="{ 192.168.1.23, 192.168.1.24, 192.168.1.25, 192.168.1.26 }"
               fix() {
                 LIST=$(nft -a list chain ip nat CILIUM_POST_nat 2>/dev/null) || return 0
                 CIDR=$(printf '%s\n' "$LIST" | grep 'masquerade' | grep -o 'ip saddr [0-9./]*' | head -1 | awk '{print $3}')
                 GW=$(printf '%s\n' "$LIST" | grep 'snat to' | grep -o 'snat to [0-9.]*' | head -1 | awk '{print $3}')
-                MARKIDX=$(printf '%s\n' "$LIST" | grep -n '0x00000a00 return' | head -1 | cut -d: -f1)
-                MASQIDX=$(printf '%s\n' "$LIST" | grep -n 'masquerade' | head -1 | cut -d: -f1)
-                if [ -n "$MARKIDX" ] && [ -n "$MASQIDX" ] && [ "$MARKIDX" -lt "$MASQIDX" ]; then
+                # Healthy = a masquerade rule for the pod CIDR that EXCLUDES the
+                # LBIPAM VIPs (pod-src must survive to the wire for the peer
+                # node's BPF LB DNAT). The mark-return rule alone is not enough:
+                # Cilium's BPF rewrites skb->mark between the pod netns and the
+                # host's nft tables, so the mark-based skip silently fails.
+                if printf '%s\n' "$LIST" | grep 'masquerade' | grep -q '192.168.1.23'; then
                   return 0
                 fi
-                echo "cilium-nat-skip-guard: CILIUM_POST_nat ordering broken (mark=${MARKIDX:-missing} masq=${MASQIDX:-missing}), rebuilding"
+                echo "cilium-nat-skip-guard: CILIUM_POST_nat masq rule lacks VIP exclusion, rebuilding"
                 for h in $(nft -a list chain ip nat POSTROUTING 2>/dev/null | grep 'jump CILIUM_POST_nat' | grep -o 'handle [0-9]*' | awk '{print $2}'); do
                   nft delete rule ip nat POSTROUTING handle "$h" 2>/dev/null
                 done
@@ -78,7 +79,7 @@ spec:
                 nft delete chain ip nat CILIUM_POST_nat 2>/dev/null
                 nft add chain ip nat CILIUM_POST_nat 2>/dev/null || return 0
                 nft add rule ip nat CILIUM_POST_nat 'meta mark & 0x00000e00 == 0x00000a00 return' 2>/dev/null
-                [ -n "${CIDR:-}" ] && nft add rule ip nat CILIUM_POST_nat "oifname != \"cilium_*\" ip saddr ${CIDR} ip daddr != 10.42.0.0/16 masquerade" 2>/dev/null
+                [ -n "${CIDR:-}" ] && nft add rule ip nat CILIUM_POST_nat "oifname != \"cilium_*\" ip saddr ${CIDR} ip daddr != 10.42.0.0/16 ip daddr != ${VIPSET} masquerade" 2>/dev/null
                 [ -n "${GW:-}" ] && nft add rule ip nat CILIUM_POST_nat "oifname \"lxc*\" ip saddr 127.0.0.1 snat to ${GW}" 2>/dev/null
                 nft add rule ip nat POSTROUTING jump CILIUM_POST_nat 2>/dev/null
                 echo "cilium-nat-skip-guard: rebuilt CILIUM_POST_nat (cidr=${CIDR:-?} snat=${GW:-?})"
