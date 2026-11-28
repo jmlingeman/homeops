@@ -2,9 +2,12 @@
 
 Status: **working** (verified off-site from a phone on cellular — September 2026 client fixes;
 October 2026 off-site `*.jesseisageek.com` DNS + load-balancer + Safari fixes;
-November 2026: the "external sites dead" outage traced to wg-quick full-tunnel policy routing
-(table 51820) in the pod netns — fixed by extending the postStart hook; see the November 2026
-incident section below).
+late-November 2026 two-week "external sites dead" outage: root cause = the 2026-11-24
+Cilium rollback restoring `loadBalancer.mode: dsr` (undid the 2026-10-27 snat fix) plus a
+host `CILIUM_POST_nat` re-masquerade — fixed 2026-11-27, see
+[incidents/2026-11-27-offsite-vpn-dns-outage.md](incidents/2026-11-27-offsite-vpn-dns-outage.md);
+an earlier, separate November incident (JessePhone3 full-tunnel / wg-quick table 51820) is
+documented below in "The November 2026 incident").
 
 Clients connect from anywhere to the home k3s cluster's WireGuard server
 (`wg-easy`, v15.4.0, Node-based image) and can reach the home LAN
